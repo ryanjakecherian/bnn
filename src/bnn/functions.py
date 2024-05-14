@@ -28,4 +28,7 @@ class bit_shift(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output: torch.Tensor) -> torch.Tensor:
-        return grad_output / (2**ctx.bits), None
+        divided = grad_output / (2**ctx.bits)
+        divided = torch.floor(divided)
+
+        return divided, None

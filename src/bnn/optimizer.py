@@ -20,14 +20,17 @@ class ExpectationSGD(torch.optim.Optimizer):
                 loss = closure()
 
         for group in self.param_groups:
+            lr = group['lr']
+
             for param in group['params']:
                 if param.grad is None:
                     continue
 
-                expectation_sgd(group)
+                expectation_sgd(param, lr)
+                raise NotImplementedError
 
         return loss
 
 
-def expectation_sgd(params: list[torch.Tensor]) -> None:
+def expectation_sgd(params: list[torch.Tensor], lr) -> None:
     raise NotImplementedError
