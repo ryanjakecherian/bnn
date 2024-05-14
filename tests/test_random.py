@@ -9,7 +9,7 @@ test_generate_random_ternary_tensor_cases = [0.1 * i for i in range(11)]
 def test_generate_random_ternary_tensor(desired_var):
     torch.manual_seed(42)
 
-    SHAPE = [100000]
+    SHAPE = [3000, 3000]
     DTYPE = torch.float
 
     random = bnn.random.generate_random_ternary_tensor(
