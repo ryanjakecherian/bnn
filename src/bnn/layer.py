@@ -1,7 +1,7 @@
 import torch
 
 import bnn.functions
-import bnn.utils
+import bnn.random
 
 
 class TernBinLayer(torch.nn.Module):
@@ -28,22 +28,22 @@ class TernBinLayer(torch.nn.Module):
 
     def _initialise_W(self, desired_var: None | float = None):
         if desired_var is None:
-            desired_var = bnn.utils.calc_desired_var(
+            desired_var = bnn.random.calc_desired_var(
                 dim=self.output_dim,
                 bit_shift=self.bit_shift,
             )
         if desired_var < 0:
-            raise ValueError(f"desired_var {desired_var} is not a valid probability!")
+            raise ValueError(f'desired_var {desired_var} is not a valid probability!')
         elif desired_var > 1:
             desired_var = 1
-            #raise RuntimeWarning(f"desired_var {desired_var}>1! Setting desired_var=1")
+            # raise RuntimeWarning(f"desired_var {desired_var}>1! Setting desired_var=1")
 
         self.W.requires_grad = False
-
-        self.W[:] = (torch.rand_like(self.W) < desired_var).float()
-        half = torch.rand_like(self.W) < 0.5
-        self.W[half] = -self.W[half]
-
+        self.W[:] = bnn.random.generate_random_ternary_tensor(
+            shape=self.W.shape,
+            desired_var=desired_var,
+            dtype=torch.float,
+        )
         self.W.requires_grad = True
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -54,4 +54,4 @@ class TernBinLayer(torch.nn.Module):
         return out_binary
 
     def __repr__(self):
-        return f"W: {self.W}"
+        return f'W: {self.W}'
