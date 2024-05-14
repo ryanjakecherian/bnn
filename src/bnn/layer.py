@@ -22,6 +22,8 @@ class TernBinLayer(torch.nn.Module):
         self._initialise_W()
 
     def _create_W(self):
+        # HACK this should be ternary, or an integer, not a float...
+        # ... float for now because pytorch doesn't support int gradients :(
         self.W = torch.nn.Parameter(
             torch.zeros(self.input_dim, self.output_dim, dtype=torch.float),
         )
@@ -42,6 +44,7 @@ class TernBinLayer(torch.nn.Module):
         self.W[:] = bnn.random.generate_random_ternary_tensor(
             shape=self.W.shape,
             desired_var=desired_var,
+            # HACK should really be integer...!
             dtype=torch.float,
         )
         self.W.requires_grad = True

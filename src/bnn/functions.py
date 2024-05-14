@@ -3,6 +3,7 @@ import torch.autograd
 
 
 class binarise(torch.autograd.Function):
+    # HACK should be boolean...
     @staticmethod
     def forward(ctx, x: torch.Tensor) -> torch.Tensor:
         out = torch.ones_like(x, dtype=torch.float)
@@ -16,6 +17,7 @@ class binarise(torch.autograd.Function):
 
 
 class bit_shift(torch.autograd.Function):
+    # HACK is this even necessary...?
     @staticmethod
     def forward(ctx, x: torch.Tensor, bits: int) -> torch.Tensor:
         ctx.bits = bits
