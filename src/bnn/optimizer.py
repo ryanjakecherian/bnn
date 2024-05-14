@@ -10,15 +10,24 @@ class ExpectationSGD(torch.optim.Optimizer):
 
         super().__init__(params, defaults)
 
+    def __setstate__(self, state):
+        super().__setstate__(state)
+
     def step(self, closure=None) -> float | None:
         loss = None
         if closure is not None:
             with torch.enable_grad():
                 loss = closure()
 
-        # TODO implement me!
-        ...
+        for group in self.param_groups:
+            for param in group['params']:
+                if param.grad is None:
+                    continue
 
-        raise NotImplementedError
+                expectation_sgd(group)
 
         return loss
+
+
+def expectation_sgd(params: list[torch.Tensor]) -> None:
+    raise NotImplementedError
