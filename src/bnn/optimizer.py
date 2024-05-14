@@ -26,6 +26,7 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     continue
 
+                # TODO implement me...
                 expectation_sgd(param, lr)
                 raise NotImplementedError
 
