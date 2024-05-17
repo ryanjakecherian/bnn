@@ -16,6 +16,21 @@ class binarise(torch.autograd.Function):
         return grad_output
 
 
+class tern_bin_matmul(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, W: torch.Tensor, x: torch.Tensor):
+        ctx.x = x
+        ctx.W = W
+        return x @ W
+
+    @staticmethod
+    def backward(ctx, grad_output: torch.Tensor):
+        grad_x = grad_output @ ctx.W.T
+        grad_W = grad_output.unsqueeze(-2) * ctx.x.unsqueeze(-1)
+
+        return grad_W, grad_x
+
+
 class bit_shift(torch.autograd.Function):
     # HACK is this even necessary...?
     @staticmethod

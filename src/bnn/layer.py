@@ -51,7 +51,7 @@ class TernBinLayer(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO make this a custom ternary multiplication, with custom backwards?
-        integer = x @ self.W
+        integer = bnn.functions.tern_bin_matmul.apply(self.W, x)
         bitshifted = bnn.functions.bit_shift.apply(integer, self.bit_shift)
         out_binary = bnn.functions.binarise.apply(bitshifted)
 
