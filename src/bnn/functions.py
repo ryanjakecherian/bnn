@@ -5,30 +5,42 @@ import torch.autograd
 class binarise(torch.autograd.Function):
     # HACK should be boolean...
     @staticmethod
-    def forward(ctx, x: torch.Tensor) -> torch.Tensor:
+    def forward(ctx, x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
         out = torch.ones_like(x, dtype=torch.float)
         out[x < 0] = -1
 
         return out
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor) -> torch.Tensor:
-        return grad_output
+    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, None]:
+        return grad_output, None
 
 
 class tern_bin_matmul(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, W: torch.Tensor, x: torch.Tensor):
-        ctx.x = x
-        ctx.W = W
+    def forward(
+        ctx,
+        W: torch.Tensor,
+        x: torch.Tensor,
+        project: bool = False,
+    ) -> torch.Tensor:
+        ctx.save_for_backward(x, W)
+        ctx.project = project
         return x @ W
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor):
-        grad_x = grad_output @ ctx.W.T
-        grad_W = grad_output.unsqueeze(-2) * ctx.x.unsqueeze(-1)
+    def backward(
+        ctx,
+        grad_output: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, None]:
+        x, W = ctx.saved_tensors
+        grad_x = grad_output @ W.T
+        grad_W = grad_output.unsqueeze(-2) * x.unsqueeze(-1)
 
-        return grad_W, grad_x
+        if ctx.project:
+            grad_x = binarise.apply(grad_x)
+
+        return grad_W, grad_x, None
 
 
 class bit_shift(torch.autograd.Function):
@@ -42,7 +54,7 @@ class bit_shift(torch.autograd.Function):
         return divided
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor) -> torch.Tensor:
+    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, None]:
         divided = grad_output / (2**ctx.bits)
         divided = torch.floor(divided)
 

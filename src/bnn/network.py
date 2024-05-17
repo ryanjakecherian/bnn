@@ -5,16 +5,19 @@ import bnn.layer
 
 class TernBinNetwork(torch.nn.Module):
     layers: torch.nn.ModuleDict
+    project: bool
 
-    def __init__(self, *dims: list[int], bit_shift: int):
+    def __init__(self, *dims: list[int], bit_shift: int, project: bool):
         super().__init__()
 
+        self.project = project
         self.layers = torch.nn.ModuleDict()
         for i, (input_dim, output_dim) in enumerate(zip(dims, dims[1:])):
             layer = bnn.layer.TernBinLayer(
                 input_dim=input_dim,
                 output_dim=output_dim,
                 bit_shift=bit_shift,
+                project=project,
             )
             self.layers[f'TernBinLayer{i}'] = layer
 

@@ -9,14 +9,18 @@ class TernBinLayer(torch.nn.Module):
     output_dim: int
     bit_shift: int
 
+    project: bool
+
     W: torch.nn.Parameter
 
-    def __init__(self, input_dim: int, output_dim: int, bit_shift: int):
+    def __init__(self, input_dim: int, output_dim: int, bit_shift: int, project: bool):
         super().__init__()
 
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.bit_shift = bit_shift
+
+        self.project = project
 
         self._create_W()
         self._initialise_W()
@@ -51,7 +55,7 @@ class TernBinLayer(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO make this a custom ternary multiplication, with custom backwards?
-        integer = bnn.functions.tern_bin_matmul.apply(self.W, x)
+        integer = bnn.functions.tern_bin_matmul.apply(self.W, x, self.project)
         bitshifted = bnn.functions.bit_shift.apply(integer, self.bit_shift)
         out_binary = bnn.functions.binarise.apply(bitshifted)
 
