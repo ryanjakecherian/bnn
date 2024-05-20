@@ -9,13 +9,9 @@ class TernBinNetwork(torch.nn.Module):
     input: torch.nn.ParameterDict
     grad: torch.nn.ParameterDict
 
-    project: bool
-    # TODO add activations as parameters...?
-
-    def __init__(self, *dims: list[int], bit_shift: int, project: bool):
+    def __init__(self, *dims: list[int]):
         super().__init__()
 
-        self.project = project
         self.layers = torch.nn.ModuleDict()
         self.input = torch.nn.ParameterDict()
         self.grad = torch.nn.ParameterDict()
@@ -25,8 +21,6 @@ class TernBinNetwork(torch.nn.Module):
             layer = bnn.layer.TernBinLayer(
                 input_dim=input_dim,
                 output_dim=output_dim,
-                bit_shift=bit_shift,
-                project=project,
             )
 
             layer_name = f'TernBinLayer{i}'

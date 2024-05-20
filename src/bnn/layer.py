@@ -7,21 +7,15 @@ import bnn.random
 class TernBinLayer(torch.nn.Module):
     input_dim: int
     output_dim: int
-    bit_shift: int
-
-    project: bool
 
     W: torch.nn.Parameter
     W_grad: torch.nn.Parameter
 
-    def __init__(self, input_dim: int, output_dim: int, bit_shift: int, project: bool):
+    def __init__(self, input_dim: int, output_dim: int):
         super().__init__()
 
         self.input_dim = input_dim
         self.output_dim = output_dim
-        self.bit_shift = bit_shift
-
-        self.project = project
 
         self._create_W()
         self._initialise_W()
@@ -40,7 +34,7 @@ class TernBinLayer(torch.nn.Module):
         if desired_var is None:
             desired_var = bnn.random.calc_desired_var(
                 dim=self.output_dim,
-                bit_shift=self.bit_shift,
+                bit_shift=0,
             )
         if desired_var < 0:
             raise ValueError(f'desired_var {desired_var} is not a valid probability!')

@@ -6,7 +6,7 @@ def binarise(x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
     out = torch.ones_like(x)
     out[x < threshold] = -1
 
-    return out
+    return out.to(torch.int)
 
 
 def ternarise(
