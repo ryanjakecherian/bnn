@@ -21,8 +21,13 @@ class TernBinNetwork(torch.nn.Module):
             )
             self.layers[f'TernBinLayer{i}'] = layer
 
+    @torch.no_grad
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer in self.layers.values():
             x = layer(x)
 
         return x
+
+    @torch.no_grad
+    def backward(self, grad: torch.Tensor) -> None:
+        raise NotImplementedError

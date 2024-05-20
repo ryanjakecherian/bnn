@@ -53,6 +53,7 @@ class TernBinLayer(torch.nn.Module):
         )
         self.W.requires_grad = True
 
+    @torch.no_grad
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO make this a custom ternary multiplication, with custom backwards?
         integer = bnn.functions.tern_bin_matmul.apply(self.W, x, self.project)
@@ -60,6 +61,10 @@ class TernBinLayer(torch.nn.Module):
         out_binary = bnn.functions.binarise.apply(bitshifted)
 
         return out_binary
+
+    @torch.no_grad
+    def backward(self, grad: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        raise NotImplementedError
 
     def __repr__(self):
         return f'W: {self.W}'
