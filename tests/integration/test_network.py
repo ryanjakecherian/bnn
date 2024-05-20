@@ -59,19 +59,34 @@ def test_random_data(random_data: RandomTestData):
 
 @pytest.fixture
 def get_network():
-    def get_network_(
-        input_dim: int,
-        output_dim: int,
-    ) -> bnn.network.TernBinNetwork:
-        return bnn.network.TernBinNetwork(input_dim, output_dim)
+    def get_network_(*dims: list[int]) -> bnn.network.TernBinNetwork:
+        return bnn.network.TernBinNetwork(*dims)
 
     return get_network_
 
 
 def test_get_network(get_network):
-    NN = get_network(input_dim=16, output_dim=32)
-    assert NN is not None
+    network = get_network(16, 32, 64, 32, 16)
+    assert network is not None
     return
+
+
+random_hidden_layer_dims = [
+    [],
+    [16, 16],
+    [16, 32, 32, 16],
+    [16, 32, 64, 32, 16],
+]
+
+
+@pytest.fixture(params=random_hidden_layer_dims)
+def get_random_network(request, get_network, random_data):
+    random_dims = request.param
+
+    def get_random_network_(input_dim, output_dim):
+        return get_network(random_data.input_dim, *random_dims, random_data.output_dim)
+
+    return get_random_network_
 
 
 @dataclasses.dataclass
@@ -81,8 +96,8 @@ class RandomDataAndNetwork:
 
 
 @pytest.fixture
-def random_data_and_network(random_data, get_network) -> RandomDataAndNetwork:
-    network = get_network(random_data.input_dim, random_data.output_dim)
+def random_data_and_network(random_data, get_random_network) -> RandomDataAndNetwork:
+    network = get_random_network(random_data.input_dim, random_data.output_dim)
     return RandomDataAndNetwork(random_data=random_data, network=network)
 
 

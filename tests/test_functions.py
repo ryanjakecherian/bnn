@@ -43,26 +43,26 @@ test_binarise_cases = [
     # sign(x)
     (
         {
-            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]),
+            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=torch.int),
             'threshold': 0,
         },
-        torch.Tensor([-1, -1, -1, -1, 1, 1, 1, 1, 1]),
+        torch.Tensor([-1, -1, -1, -1, 1, 1, 1, 1, 1]).to(dtype=torch.int),
     ),
     # sign(x+1)
     (
         {
-            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]),
+            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=torch.int),
             'threshold': -1,
         },
-        torch.Tensor([-1, -1, -1, 1, 1, 1, 1, 1, 1]),
+        torch.Tensor([-1, -1, -1, 1, 1, 1, 1, 1, 1]).to(dtype=torch.int),
     ),
     # sign(x-3)
     (
         {
-            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]),
+            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=torch.int),
             'threshold': 3,
         },
-        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1, 1]),
+        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1, 1]).to(torch.int),
     ),
 ]
 
