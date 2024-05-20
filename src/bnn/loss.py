@@ -1,11 +1,28 @@
+import abc
+
 import torch
 
+import bnn.functions
 
-def number_incorrect(
-    output: torch.Tensor,
-    label: torch.Tensor,
-) -> int:
-    incorrect = torch.abs(output - label)
-    loss = incorrect.sum()
 
-    return loss
+class LossFunction(abc.ABC):
+    @staticmethod
+    @abc.abstractmethod
+    def forward(output: torch.Tensor, label: torch.Tensor) -> float: ...
+
+    @staticmethod
+    @abc.abstractmethod
+    def backward(output: torch.Tensor, label: torch.Tensor) -> float: ...
+
+
+class number_incorrect(LossFunction):
+    @staticmethod
+    def forward(output: torch.Tensor, label: torch.Tensor) -> int:
+        incorrect = torch.abs(output - label)
+        loss = incorrect.sum()
+
+        return loss
+
+    @staticmethod
+    def backward(output: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        return bnn.functions.binarise(output - label)

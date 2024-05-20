@@ -55,14 +55,20 @@ class TernBinLayer(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO make this a custom ternary multiplication, with custom backwards?
         integer = x @ self.W
-        out_binary = bnn.functions.binarise.apply(integer)
+        out_binary = bnn.functions.binarise(x=integer, threshold=0)
 
         return out_binary
 
-    def backward(self, grad: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        raise NotImplementedError
+    def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
+        """Backproject gradient signal and update W_grad."""
+        self.W_grad.data = (grad.unsqueeze(-2) * activation.unsqueeze(-1)).sum(0)
+
+        grad = grad @ self.W.T
+        # TODO pick these threshold nicely
+        grad = bnn.functions.ternarise(grad, threshold_lo=0, threshold_hi=1)
+
+        return grad.to(torch.int)
 
     def __repr__(self):
         return f'W: {self.W}'
