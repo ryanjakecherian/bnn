@@ -12,6 +12,7 @@ class TernBinLayer(torch.nn.Module):
     project: bool
 
     W: torch.nn.Parameter
+    W_grad: torch.nn.Parameter
 
     def __init__(self, input_dim: int, output_dim: int, bit_shift: int, project: bool):
         super().__init__()
@@ -26,10 +27,13 @@ class TernBinLayer(torch.nn.Module):
         self._initialise_W()
 
     def _create_W(self):
-        # HACK this should be ternary, or an integer, not a float...
-        # ... float for now because pytorch doesn't support int gradients :(
         self.W = torch.nn.Parameter(
-            torch.zeros(self.input_dim, self.output_dim, dtype=torch.float),
+            data=torch.zeros(self.input_dim, self.output_dim, dtype=torch.int),
+            requires_grad=False,
+        )
+        self.W_grad = torch.nn.Parameter(
+            data=torch.empty_like(self.W),
+            requires_grad=False,
         )
 
     def _initialise_W(self, desired_var: None | float = None):
@@ -44,25 +48,19 @@ class TernBinLayer(torch.nn.Module):
             desired_var = 1
             # raise RuntimeWarning(f"desired_var {desired_var}>1! Setting desired_var=1")
 
-        self.W.requires_grad = False
         self.W[:] = bnn.random.generate_random_ternary_tensor(
             shape=self.W.shape,
             desired_var=desired_var,
-            # HACK should really be integer...!
-            dtype=torch.float,
+            dtype=torch.int,
         )
-        self.W.requires_grad = True
 
-    @torch.no_grad
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO make this a custom ternary multiplication, with custom backwards?
-        integer = bnn.functions.tern_bin_matmul.apply(self.W, x, self.project)
-        bitshifted = bnn.functions.bit_shift.apply(integer, self.bit_shift)
-        out_binary = bnn.functions.binarise.apply(bitshifted)
+        integer = x @ self.W
+        out_binary = bnn.functions.binarise.apply(integer)
 
         return out_binary
 
-    @torch.no_grad
     def backward(self, grad: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError
 

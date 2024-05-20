@@ -6,7 +6,7 @@ class binarise(torch.autograd.Function):
     # HACK should be boolean...
     @staticmethod
     def forward(ctx, x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
-        out = torch.ones_like(x, dtype=torch.float)
+        out = torch.ones_like(x, dtype=torch.int)
         out[x < 0] = -1
 
         return out
