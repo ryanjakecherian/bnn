@@ -3,8 +3,8 @@ import torch.autograd
 
 
 def binarise(x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
-    out = torch.sign(x - threshold)
-    out[out == 0] = 1
+    out = torch.ones_like(x)
+    out[x < threshold] = -1
 
     return out
 
