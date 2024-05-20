@@ -9,14 +9,14 @@ test_generate_random_ternary_tensor_cases = [0.1 * i for i in range(11)]
 def test_generate_random_ternary_tensor(desired_var):
     torch.manual_seed(42)
 
-    SHAPE = [3000, 3000]
-    DTYPE = torch.float
+    for DTYPE in (torch.int, torch.float):
+        SHAPE = [3000, 3000]
 
-    random = bnn.random.generate_random_ternary_tensor(
-        shape=SHAPE,
-        desired_var=desired_var,
-        dtype=DTYPE,
-    )
+        random = bnn.random.generate_random_ternary_tensor(
+            shape=SHAPE,
+            desired_var=desired_var,
+            dtype=DTYPE,
+        )
 
-    assert random.var() == pytest.approx(desired_var, abs=0.01)
-    assert random.mean() == pytest.approx(0, abs=0.01)
+        assert random.to(torch.float).var() == pytest.approx(desired_var, abs=0.01)
+        assert random.to(torch.float).mean() == pytest.approx(0, abs=0.01)
