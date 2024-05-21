@@ -50,8 +50,8 @@ class TernBinNetwork(torch.nn.Module):
 
     def _initialise(
         self,
-        W_mean: float | None | list[float | None],
-        W_var: float | None | list[float | None],
+        W_mean: float | None | list[float | None] = None,
+        W_var: float | None | list[float | None] = None,
     ) -> None:
         if isinstance(W_mean, list):
             if len(W_mean) != len(self.layers):
