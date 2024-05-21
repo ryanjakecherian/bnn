@@ -39,6 +39,8 @@ class TernBinLayer(torch.nn.Module):
             desired_var=desired_var,
             dtype=torch.int,
         )
+        # reset grad
+        self.W.grad = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         integer = x @ self.W

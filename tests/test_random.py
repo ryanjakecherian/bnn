@@ -20,3 +20,67 @@ def test_generate_random_ternary_tensor(desired_var):
 
         assert random.to(torch.float).var() == pytest.approx(desired_var, abs=0.01)
         assert random.to(torch.float).mean() == pytest.approx(0, abs=0.01)
+
+
+test_discrete_mean_cases = [
+    (
+        [(1, 1)],
+        1,
+    ),
+    (
+        [(0, 0.5), (1, 0.5)],
+        0.5,
+    ),
+    (
+        [(-1, 0), (0, 0.5), (1, 0.5)],
+        0.5,
+    ),
+    (
+        [(-1, 0.4), (0, 0.2), (1, 0.4)],
+        0,
+    ),
+]
+
+
+@pytest.mark.parametrize('distr, expected_mean', test_discrete_mean_cases)
+def test_discrete_mean(distr, expected_mean):
+    mean = bnn.random.discrete_mean(distr)
+    assert mean == pytest.approx(expected_mean)
+
+
+test_discrete_var_cases = [
+    (
+        [(1, 1)],
+        0,
+    ),
+    (
+        [(0, 0.5), (1, 0.5)],
+        0.25,
+    ),
+    (
+        [(-1, 0), (0, 0.5), (1, 0.5)],
+        0.25,
+    ),
+    (
+        [(-1, 0.4), (0, 0.2), (1, 0.4)],
+        0.8,
+    ),
+]
+
+
+@pytest.mark.parametrize('distr, expected_var', test_discrete_var_cases)
+def test_discrete_var(distr, expected_var):
+    var = bnn.random.discrete_var(distr)
+    assert var == pytest.approx(expected_var)
+
+
+test_get_ternary_distribution_from_mean_and_var_cases = []
+
+
+@pytest.mark.parametrize(
+    'mean, var',
+    test_get_ternary_distribution_from_mean_and_var_cases,
+)
+def test_get_ternary_distribution_from_mean_and_var(mean, var):
+    distribution = bnn.random.get_ternary_distribution_from_mean_and_var(mean, var)
+    assert distribution is not None
