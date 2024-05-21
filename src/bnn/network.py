@@ -85,9 +85,9 @@ class TernBinNetwork(torch.nn.Module):
 
         # reset all weight vars
         zipped = zip(self.layers.values(), W_var, W_mean, W_zero_prob)
-        for layer, var, mean, nonzero_prob in zipped:
+        for layer, var, mean, zero_prob in zipped:
             layer: bnn.layer.TernBinLayer
-            layer._initialise_W(mean=mean, var=var, nonzero_prob=nonzero_prob)
+            layer._initialise_W(mean=mean, var=var, zero_prob=zero_prob)
 
         # reset grads and activations
         self._clear_input_and_grad()
