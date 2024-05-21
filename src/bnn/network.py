@@ -36,6 +36,7 @@ class TernBinNetwork(torch.nn.Module):
 
     def _clear_input_and_grad(self) -> None:
         for layer_name, layer in self.layers.items():
+            # TODO check - should this be in-place or create a new parameter?
             # init activations and grads
             self.input[layer_name] = torch.nn.Parameter(
                 data=torch.zeros(layer.input_dim, layer.output_dim, dtype=torch.int),
@@ -54,6 +55,7 @@ class TernBinNetwork(torch.nn.Module):
         W_var: float | None | list[float | None] = None,
         W_zero_prob: float | None | list[float | None] = None,
     ) -> None:
+        # input sanity checking
         if (W_zero_prob is not None) and (W_var is not None):
             raise ValueError('Cannot spacify both var and nonzero prob!')
 
