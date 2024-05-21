@@ -124,7 +124,3 @@ def test_integration(random_data_and_network: RandomDataAndNetwork):
     # loss backwards pass
     input_grad = network.backward(grad=loss_grad)
     assert input_grad.shape == random_data.input.shape
-
-    for layer in network.layers.values():
-        layer: bnn.layer.TernBinLayer
-        assert layer.W.shape == layer.W_grad.shape

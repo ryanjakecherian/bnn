@@ -9,7 +9,6 @@ class TernBinLayer(torch.nn.Module):
     output_dim: int
 
     W: torch.nn.Parameter
-    W_grad: torch.nn.Parameter
 
     def __init__(self, input_dim: int, output_dim: int):
         super().__init__()
@@ -23,10 +22,6 @@ class TernBinLayer(torch.nn.Module):
     def _create_W(self):
         self.W = torch.nn.Parameter(
             data=torch.zeros(self.input_dim, self.output_dim, dtype=torch.int),
-            requires_grad=False,
-        )
-        self.W_grad = torch.nn.Parameter(
-            data=torch.empty_like(self.W),
             requires_grad=False,
         )
 
@@ -56,7 +51,10 @@ class TernBinLayer(torch.nn.Module):
 
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
-        self.W_grad.data = (grad.unsqueeze(-2) * activation.unsqueeze(-1)).sum(0)
+        # HACK check if long_int -> int conversion is safe!
+        W_grad = (grad.unsqueeze(-2) * activation.unsqueeze(-1)).sum(0)
+        W_grad_int = W_grad.to(torch.int)
+        self.W.grad = W_grad_int
 
         grad = grad @ self.W.T
         # TODO pick these threshold nicely
