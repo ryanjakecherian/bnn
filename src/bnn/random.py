@@ -46,6 +46,8 @@ def sample_iid_tensor_from_discrete_distribution(
     shape: list[int],
     distribution: DISCRETE_DIST,
 ) -> torch.Tensor:
+    check_is_valid_distribution(distribution)
+
     out = torch.empty(shape, dtype=torch.int)
 
     uniform = torch.rand_like(out, dtype=torch.float)
@@ -79,3 +81,13 @@ def check_is_valid_probability(*xs: list[float]) -> None:
             raise ValueError('Invalid probability! ' + error)
 
     return
+
+
+def check_is_valid_distribution(distribution: DISCRETE_DIST) -> None:
+    probs, _ = zip(*distribution)
+
+    check_is_valid_probability(*probs)
+
+    TOL = 1e-3
+    if abs(sum(probs) - 1) > TOL:
+        raise ValueError("Invalid distribution doesn't sum to 1.")

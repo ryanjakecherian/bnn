@@ -132,3 +132,17 @@ def test_sample_iid_tensor_from_discrete_distribution(shape, distribution):
     for value, prob in distribution:
         empirical_prob = torch.sum(tensor == value) / len(tensor)
         assert empirical_prob == pytest.approx(prob, abs=0.05)
+
+
+test_check_is_valid_distribution_cases = [
+    ([(1, 1), (1, 1), (1, 1)], ValueError),
+    ([(1, 1), (1, 0), (1, 0)], ValueError),
+    ([(-1, 0.5), (0, 0.5), (1, 0.5)], ValueError),
+    ([(-1, 0.5), (0, 0.1), (1, 0.1)], ValueError),
+]
+
+
+@pytest.mark.parametrize('distribution, error', test_check_is_valid_distribution_cases)
+def test_check_is_valid_distribution(distribution, error):
+    with pytest.raises(error):
+        bnn.random.check_is_valid_distribution(distribution)
