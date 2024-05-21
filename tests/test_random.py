@@ -136,9 +136,10 @@ def test_sample_iid_tensor_from_discrete_distribution(shape, distribution):
 
 test_check_is_valid_distribution_cases = [
     ([(1, 1), (1, 1), (1, 1)], ValueError),
-    ([(1, 1), (1, 0), (1, 0)], ValueError),
+    ([(1, 1), (1, 1), (1, 0)], ValueError),
     ([(-1, 0.5), (0, 0.5), (1, 0.5)], ValueError),
     ([(-1, 0.5), (0, 0.1), (1, 0.1)], ValueError),
+    ([(-1, 2), (1, -1)], ValueError),
 ]
 
 

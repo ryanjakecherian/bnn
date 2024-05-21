@@ -84,7 +84,7 @@ def check_is_valid_probability(*xs: list[float]) -> None:
 
 
 def check_is_valid_distribution(distribution: DISCRETE_DIST) -> None:
-    probs, _ = zip(*distribution)
+    _, probs = zip(*distribution)
 
     check_is_valid_probability(*probs)
 
