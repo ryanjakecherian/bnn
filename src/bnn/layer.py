@@ -25,19 +25,16 @@ class TernBinLayer(torch.nn.Module):
             requires_grad=False,
         )
 
-    def _initialise_W(self, desired_var: None | float = None):
-        if desired_var is None:
-            desired_var = 0.5
-        if desired_var < 0:
-            raise ValueError(f'desired_var {desired_var} is not a valid probability!')
-        elif desired_var > 1:
-            desired_var = 1
-            # raise RuntimeWarning(f"desired_var {desired_var}>1! Setting desired_var=1")
+    def _initialise_W(self, var: float | None = None, mean: float | None = None):
+        if mean is None:
+            mean = 0
+        if var is None:
+            var = 0.5
 
-        self.W[:] = bnn.random.generate_random_ternary_tensor(
-            shape=self.W.shape,
-            desired_var=desired_var,
-            dtype=torch.int,
+        distribution = bnn.random.get_ternary_distribution_from_mean_and_var(mean, var)
+        self.W.data = bnn.random.sample_iid_tensor_from_discrete_distribution(
+            self.W.shape,
+            distribution=distribution,
         )
         # reset grad
         self.W.grad = None

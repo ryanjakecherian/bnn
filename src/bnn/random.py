@@ -30,6 +30,9 @@ def get_ternary_distribution_from_mean_and_var(
     mean: float,
     var: float,
 ) -> TERNARY_DIST:
+    if var < 0:
+        raise ValueError(f'{var} < 0, is not a valid variance.')
+
     p_PLUS = 0.5 * (var + mean**2 + mean)
     p_MINUS = p_PLUS - mean
     p_ZERO = 1 - p_PLUS - p_MINUS
@@ -37,6 +40,22 @@ def get_ternary_distribution_from_mean_and_var(
     check_is_valid_probability(p_PLUS, p_MINUS, p_ZERO)
 
     return (-1, p_MINUS), (0, p_ZERO), (1, p_PLUS)
+
+
+def sample_iid_tensor_from_discrete_distribution(
+    shape: list[int],
+    distribution: DISCRETE_DIST,
+) -> torch.Tensor:
+    out = torch.empty(shape, dtype=torch.int)
+
+    uniform = torch.rand_like(out, dtype=torch.float)
+
+    for value, prob in distribution:
+        uniform -= prob
+        out[uniform < 0] = value
+        uniform[uniform < 0] += 1
+
+    return out
 
 
 def discrete_mean(dist: DISCRETE_DIST) -> float:

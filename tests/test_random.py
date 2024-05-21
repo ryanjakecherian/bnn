@@ -74,7 +74,17 @@ def test_discrete_var(distr, expected_var):
     assert var == pytest.approx(expected_var)
 
 
-test_get_ternary_distribution_from_mean_and_var_cases = []
+test_get_ternary_distribution_from_mean_and_var_cases = [
+    (0.5, 0.5),
+    (0.1, 0.5),
+    (-0.5, 0.5),
+    (-0.1, 0.5),
+    (0, 0),
+    (1, 0),
+    (-1, 0),
+    (0, 0.1),
+    (0, 0.01),
+]
 
 
 @pytest.mark.parametrize(
@@ -83,4 +93,9 @@ test_get_ternary_distribution_from_mean_and_var_cases = []
 )
 def test_get_ternary_distribution_from_mean_and_var(mean, var):
     distribution = bnn.random.get_ternary_distribution_from_mean_and_var(mean, var)
-    assert distribution is not None
+
+    assert set(value for value, _ in distribution) == {-1, 0, 1}
+    assert sum(prob for _, prob in distribution) == pytest.approx(1)
+
+    assert bnn.random.discrete_mean(distribution) == pytest.approx(mean)
+    assert bnn.random.discrete_var(distribution) == pytest.approx(var)

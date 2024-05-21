@@ -48,11 +48,32 @@ class TernBinNetwork(torch.nn.Module):
 
         return
 
-    def _initialise(self, W_var: float) -> None:
+    def _initialise(
+        self,
+        W_mean: float | None | list[float | None],
+        W_var: float | None | list[float | None],
+    ) -> None:
+        if isinstance(W_mean, list):
+            if len(W_mean) != len(self.layers):
+                raise IndexError(
+                    'Number of means does not match number of layers! '
+                    f'Means: {len(W_mean)} Layers: {len(self.layers)}'
+                )
+        else:
+            W_mean = [W_mean] * len(self.layers)
+
+        if isinstance(W_var, list):
+            if len(W_var) != len(self.layers):
+                raise IndexError(
+                    'Number of vars does not match number of layers! ' f'Vars: {len(W_var)} Layers: {len(self.layers)}'
+                )
+        else:
+            W_var = [W_var] * len(self.layers)
+
         # reset all weight vars
-        for layer in self.layers.values():
+        for layer, var, mean in zip(self.layers.values(), W_var, W_mean):
             layer: bnn.layer.TernBinLayer
-            layer._initialise_W(desired_var=W_var)
+            layer._initialise_W(mean=mean, var=var)
 
         # reset grads and activations
         self._clear_input_and_grad()
