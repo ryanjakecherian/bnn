@@ -27,10 +27,7 @@ class TernBinLayer(torch.nn.Module):
 
     def _initialise_W(self, desired_var: None | float = None):
         if desired_var is None:
-            desired_var = bnn.random.calc_desired_var(
-                dim=self.output_dim,
-                bit_shift=0,
-            )
+            desired_var = 0.5
         if desired_var < 0:
             raise ValueError(f'desired_var {desired_var} is not a valid probability!')
         elif desired_var > 1:
