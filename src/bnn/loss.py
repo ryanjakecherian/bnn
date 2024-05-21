@@ -25,4 +25,5 @@ class l1(LossFunction):
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return bnn.functions.ternarise(target - output, threshold_lo=0, threshold_hi=1)
+        error = target - output
+        return bnn.functions.ternarise(error, threshold_lo=0, threshold_hi=1)
