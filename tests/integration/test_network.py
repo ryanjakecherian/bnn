@@ -110,11 +110,11 @@ def test_integration(random_data_and_network: RandomDataAndNetwork):
     assert output.shape == random_data.target.shape
 
     # loss forward pass
-    loss = bnn.loss.number_incorrect.forward(
+    loss = bnn.loss.l1.forward(
         output=output,
         target=random_data.target,
     )
-    loss_grad = bnn.loss.number_incorrect.backward(
+    loss_grad = bnn.loss.l1.backward(
         output=output,
         target=random_data.target,
     )

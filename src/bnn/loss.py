@@ -15,14 +15,14 @@ class LossFunction(abc.ABC):
     def backward(output: torch.Tensor, target: torch.Tensor) -> float: ...
 
 
-class number_incorrect(LossFunction):
+class l1(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
-        incorrect = torch.abs(output - target)
+        incorrect = torch.abs(target - output)
         loss = incorrect.sum()
 
         return loss
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return bnn.functions.binarise(output - target)
+        return bnn.functions.ternarise(target - output, threshold_lo=0, threshold_hi=1)
