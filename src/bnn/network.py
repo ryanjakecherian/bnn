@@ -52,7 +52,11 @@ class TernBinNetwork(torch.nn.Module):
         self,
         W_mean: float | None | list[float | None] = None,
         W_var: float | None | list[float | None] = None,
+        W_zero_prob: float | None | list[float | None] = None,
     ) -> None:
+        if (W_zero_prob is not None) and (W_var is not None):
+            raise ValueError('Cannot spacify both var and nonzero prob!')
+
         if isinstance(W_mean, list):
             if len(W_mean) != len(self.layers):
                 raise IndexError(
@@ -70,10 +74,20 @@ class TernBinNetwork(torch.nn.Module):
         else:
             W_var = [W_var] * len(self.layers)
 
+        if isinstance(W_zero_prob, list):
+            if len(W_zero_prob) != len(self.layers):
+                raise IndexError(
+                    'Number of zero probs does not match number of layers! '
+                    f'zero probs: {len(W_zero_prob)} Layers: {len(self.layers)}'
+                )
+        else:
+            W_zero_prob = [W_zero_prob] * len(self.layers)
+
         # reset all weight vars
-        for layer, var, mean in zip(self.layers.values(), W_var, W_mean):
+        zipped = zip(self.layers.values(), W_var, W_mean, W_zero_prob)
+        for layer, var, mean, nonzero_prob in zipped:
             layer: bnn.layer.TernBinLayer
-            layer._initialise_W(mean=mean, var=var)
+            layer._initialise_W(mean=mean, var=var, nonzero_prob=nonzero_prob)
 
         # reset grads and activations
         self._clear_input_and_grad()

@@ -25,13 +25,25 @@ class TernBinLayer(torch.nn.Module):
             requires_grad=False,
         )
 
-    def _initialise_W(self, var: float | None = None, mean: float | None = None):
+    def _initialise_W(
+        self,
+        var: float | None = None,
+        mean: float | None = None,
+        zero_prob: float | None = None,
+    ):
+        if (var is not None) and (zero_prob is not None):
+            raise ValueError("Can't specify both var and nonzero prob")
+
         if mean is None:
             mean = 0
-        if var is None:
-            var = 0.5
+        if var is None and zero_prob is None:
+            zero_prob = 0.5
 
-        distribution = bnn.random.get_ternary_distribution_from_mean_and_var(mean, var)
+        if zero_prob is None:
+            distribution = bnn.random.get_ternary_distribution_from_mean_and_var(mean=mean, var=var)
+        else:
+            distribution = bnn.random.get_ternary_distribution_from_mean_and_zero_prob(mean=mean, zero_prob=zero_prob)
+
         self.W.data = bnn.random.sample_iid_tensor_from_discrete_distribution(
             self.W.shape,
             distribution=distribution,

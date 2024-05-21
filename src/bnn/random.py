@@ -42,6 +42,24 @@ def get_ternary_distribution_from_mean_and_var(
     return (-1, p_MINUS), (0, p_ZERO), (1, p_PLUS)
 
 
+def get_ternary_distribution_from_mean_and_zero_prob(
+    mean: float,
+    zero_prob: float,
+) -> TERNARY_DIST:
+    check_is_valid_probability(zero_prob)
+
+    if abs(mean) > 1 - zero_prob:
+        raise ValueError(f"mean {mean} and zero_prob {zero_prob} can't be achieved")
+
+    p_ZERO = zero_prob
+    p_PLUS = (mean + 1 - zero_prob) / 2
+    p_MINUS = 1 - p_ZERO - p_PLUS
+
+    check_is_valid_probability(p_PLUS, p_MINUS, p_ZERO)
+
+    return (-1, p_MINUS), (0, p_ZERO), (1, p_PLUS)
+
+
 def sample_iid_tensor_from_discrete_distribution(
     shape: list[int],
     distribution: DISCRETE_DIST,

@@ -101,6 +101,32 @@ def test_get_ternary_distribution_from_mean_and_var(mean, var):
     assert bnn.random.discrete_var(distribution) == pytest.approx(var)
 
 
+test_get_ternary_distribution_from_mean_and_zero_prob_cases = [
+    (0, 0),
+    (0, 0.1),
+    (0, 0.4),
+    (0, 0.9),
+    (1, 0),
+    (-1, 0),
+    (0.5, 0.5),
+]
+
+
+@pytest.mark.parametrize('mean, zero_prob', test_get_ternary_distribution_from_mean_and_zero_prob_cases)
+def test_get_ternary_distribution_from_mean_and_zero_prob(mean, zero_prob):
+    distribution = bnn.random.get_ternary_distribution_from_mean_and_zero_prob(
+        mean=mean,
+        zero_prob=zero_prob,
+    )
+
+    assert set(value for value, _ in distribution) == {-1, 0, 1}
+    assert sum(prob for _, prob in distribution) == pytest.approx(1)
+
+    approx_zero = pytest.approx(zero_prob)
+    assert bnn.random.discrete_mean(distribution) == pytest.approx(mean)
+    assert sum(prob for value, prob in distribution if value == 0) == approx_zero
+
+
 test_sample_iid_tensor_from_discrete_distribution_cases = [
     (
         (1000, 1000),
