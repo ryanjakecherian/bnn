@@ -99,3 +99,36 @@ def test_get_ternary_distribution_from_mean_and_var(mean, var):
 
     assert bnn.random.discrete_mean(distribution) == pytest.approx(mean)
     assert bnn.random.discrete_var(distribution) == pytest.approx(var)
+
+
+test_sample_iid_tensor_from_discrete_distribution_cases = [
+    (
+        (1000, 1000),
+        [(-1, 0.5), (1, 0.5)],
+    ),
+    (
+        (1000, 1000, 1, 1),
+        [(-1, 0.5), (1, 0.5)],
+    ),
+    (
+        (1000, 1000),
+        [(-1, 0.2), (0, 0.3), (1, 0.5)],
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    'shape, distribution',
+    test_sample_iid_tensor_from_discrete_distribution_cases,
+)
+def test_sample_iid_tensor_from_discrete_distribution(shape, distribution):
+    tensor = bnn.random.sample_iid_tensor_from_discrete_distribution(
+        shape,
+        distribution=distribution,
+    )
+    assert tensor.shape == shape
+
+    tensor = tensor.flatten()
+    for value, prob in distribution:
+        empirical_prob = torch.sum(tensor == value) / len(tensor)
+        assert empirical_prob == pytest.approx(prob, abs=0.05)
