@@ -210,7 +210,7 @@ test_backward_cases = [
         # expected_out_grad
         torch.Tensor([[-1, 1], [1, -1], [0, 0], [0, 0]]).to(torch.int),
         # expected_W_grad
-        torch.Tensor([[0, 1, 0], [-1, -1, 0]]).to(torch.int),
+        torch.Tensor([[0, 1, 0], [-4, -1, 0]]).to(torch.int),
     ),
 ]
 

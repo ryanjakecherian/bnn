@@ -65,6 +65,7 @@ class TernBinLayer(torch.nn.Module):
         while W_grad.dim() > 2:
             W_grad = W_grad.sum(0)
 
+        # TODO should this be ternarised?
         W_grad_int = W_grad.to(torch.int)
         self.W.grad = W_grad_int
 
