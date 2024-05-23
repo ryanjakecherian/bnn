@@ -101,7 +101,7 @@ def random_data_and_network(random_data, get_random_network) -> RandomDataAndNet
     return RandomDataAndNetwork(random_data=random_data, network=network)
 
 
-def test_integration(random_data_and_network: RandomDataAndNetwork):
+def test_integration_forwards_and_backwards(random_data_and_network: RandomDataAndNetwork):
     random_data = random_data_and_network.random_data
     network = random_data_and_network.network
 
