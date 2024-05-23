@@ -173,6 +173,45 @@ test_backward_cases = [
         # expected_W_grad
         -torch.ones(2, 3, dtype=torch.int),
     ),
+    # W=all, g=all, a=all
+    (
+        # W
+        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(torch.int),
+        # grad
+        torch.Tensor([-1, 0, 1]).to(torch.int),
+        # activation
+        torch.Tensor([1, -1]).to(torch.int),
+        # expected_out_grad
+        torch.Tensor([-1, 1]).to(torch.int),
+        # expected_W_grad
+        torch.Tensor([[-1, 0, 1], [1, 0, -1]]).to(torch.int),
+    ),
+    # multi-sample...!
+    (
+        # W
+        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(torch.int),
+        # grad
+        torch.Tensor([[-1, 0, 1]] * 4).to(torch.int),
+        # activation
+        torch.Tensor([[1, 1], [1, -1], [-1, -1], [-1, 1]]).to(torch.int),
+        # expected_out_grad
+        torch.Tensor([[-1, 1]] * 4).to(torch.int),
+        # expected_W_grad
+        torch.Tensor([[0, 0, 0], [0, 0, 0]]).to(torch.int),
+    ),
+    # multi-sample...!
+    (
+        # W
+        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(torch.int),
+        # grad
+        torch.Tensor([[-1, 1, 1], [1, 0, -1], [1, 1, 1], [-1, -1, -1]]).to(torch.int),
+        # activation
+        torch.Tensor([[1, 1], [1, -1], [-1, -1], [-1, 1]]).to(torch.int),
+        # expected_out_grad
+        torch.Tensor([[-1, 1], [1, -1], [0, 0], [0, 0]]).to(torch.int),
+        # expected_W_grad
+        torch.Tensor([[0, 1, 0], [-1, -1, 0]]).to(torch.int),
+    ),
 ]
 
 
