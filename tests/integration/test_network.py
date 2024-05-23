@@ -67,7 +67,7 @@ def get_network():
 
 def test_get_network(get_network):
     network = get_network(16, 32, 64, 32, 16)
-    assert network is not None
+    assert isinstance(network, bnn.network.TernBinNetwork)
     return
 
 
@@ -101,7 +101,9 @@ def random_data_and_network(random_data, get_random_network) -> RandomDataAndNet
     return RandomDataAndNetwork(random_data=random_data, network=network)
 
 
-def test_integration_forwards_and_backwards_random_data(random_data_and_network: RandomDataAndNetwork):
+def test_integration_forwards_and_backwards_random_data(
+    random_data_and_network: RandomDataAndNetwork,
+):
     random_data = random_data_and_network.random_data
     network = random_data_and_network.network
 
@@ -124,3 +126,124 @@ def test_integration_forwards_and_backwards_random_data(random_data_and_network:
     # loss backwards pass
     input_grad = network.backward(grad=loss_grad)
     assert input_grad.shape == random_data.input.shape
+
+
+test_integration_forwards_and_backwards_set_data_cases = [
+    # all ones
+    (
+        # Ws
+        [
+            torch.ones(10, 20, dtype=torch.int),
+            torch.ones(20, 5, dtype=torch.int),
+        ],
+        # x
+        torch.ones(10, dtype=torch.int),
+        # expected_input
+        [
+            torch.ones(10, dtype=torch.int),
+            torch.ones(20, dtype=torch.int),
+        ],
+        # expected_out
+        torch.ones(5, dtype=torch.int),
+        # grad
+        torch.ones(5, dtype=torch.int),
+        # expected_grad_out
+        torch.ones(10, dtype=torch.int),
+        # expected_grad_Ws
+        [
+            torch.ones(10, 20, dtype=torch.int),
+            torch.ones(20, 5, dtype=torch.int),
+        ],
+    ),
+    # all ones, some negative
+    (
+        # Ws
+        [
+            torch.ones(10, 20, dtype=torch.int),
+            torch.ones(20, 5, dtype=torch.int),
+        ],
+        # x
+        torch.ones(10, dtype=torch.int),
+        # expected_input
+        [
+            torch.ones(10, dtype=torch.int),
+            torch.ones(20, dtype=torch.int),
+        ],
+        # expected_out
+        torch.ones(5, dtype=torch.int),
+        # grad
+        -torch.ones(5, dtype=torch.int),
+        # expected_grad_out
+        -torch.ones(10, dtype=torch.int),
+        # expected_grad_Ws
+        [
+            -torch.ones(10, 20, dtype=torch.int),
+            -torch.ones(20, 5, dtype=torch.int),
+        ],
+    ),
+    # all ones, some negative
+    (
+        # Ws
+        [
+            -torch.ones(10, 20, dtype=torch.int),
+            torch.ones(20, 5, dtype=torch.int),
+        ],
+        # x
+        torch.ones(10, dtype=torch.int),
+        # expected_input
+        [
+            torch.ones(10, dtype=torch.int),
+            -torch.ones(20, dtype=torch.int),
+        ],
+        # expected_out
+        -torch.ones(5, dtype=torch.int),
+        # grad
+        torch.ones(5, dtype=torch.int),
+        # expected_grad_out
+        -torch.ones(10, dtype=torch.int),
+        # expected_grad_Ws
+        [
+            torch.ones(10, 20, dtype=torch.int),
+            -torch.ones(20, 5, dtype=torch.int),
+        ],
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    'Ws, x, expected_input, expected_out, grad, expected_grad_out, expected_grad_Ws',
+    test_integration_forwards_and_backwards_set_data_cases,
+)
+def test_integration_forwards_and_backwards_set_data(
+    Ws,
+    x,
+    expected_input,
+    expected_out,
+    grad,
+    expected_grad_out,
+    expected_grad_Ws,
+    get_network,
+):
+    # assemble network
+    dims = [len(W) for W in Ws] + [len(expected_out)]
+    network: bnn.network.TernBinNetwork = get_network(*dims)
+
+    for W, layer in zip(Ws, network.layers.values()):
+        layer: bnn.layer.TernBinLayer
+        layer.W.data = W
+
+    # forward
+    out = network.forward(x)
+
+    # backward
+    grad_out = network.backward(grad)
+
+    # assert forward
+    torch.testing.assert_close(out, expected_out)
+    for inp, expected_inp in zip(network.input.values(), expected_input):
+        torch.testing.assert_close(inp, expected_inp)
+
+    # assert backward
+    torch.testing.assert_close(grad_out, expected_grad_out)
+    for layer, expected_grad_W in zip(network.layers.values(), expected_grad_Ws):
+        torch.testing.assert_close(layer.W.grad, expected_grad_W)
