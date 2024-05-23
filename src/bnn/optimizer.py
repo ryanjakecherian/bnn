@@ -13,12 +13,7 @@ class ExpectationSGD(torch.optim.Optimizer):
     def __setstate__(self, state):
         super().__setstate__(state)
 
-    def step(self, closure=None) -> float | None:
-        loss = None
-        if closure is not None:
-            with torch.enable_grad():
-                loss = closure()
-
+    def step(self, number_of_samples: int) -> None:
         for group in self.param_groups:
             lr = group['lr']
 
@@ -27,11 +22,32 @@ class ExpectationSGD(torch.optim.Optimizer):
                     continue
 
                 # TODO implement me...
-                expectation_sgd(param, lr)
-                raise NotImplementedError
+                expectation_sgd(param, number_of_samples, lr)
 
-        return loss
+        return
 
 
-def expectation_sgd(params: list[torch.Tensor], lr) -> None:
-    raise NotImplementedError
+def expectation_sgd(
+    params: list[torch.Tensor],
+    number_of_samples: int,
+    lr: float,
+) -> None:
+    # FIXME - currently going to assume symbols are {-1, 0, 1}...
+    for param in params:
+        grad_sign = torch.sign(param.grad)
+        grad_abs = torch.abs(param.grad)
+
+        # lr = 0 nothing is trained
+        # lr = 1 everything is towards the sign of its grad
+        # lr in between - higher grad is more likely to be nudged
+        relative_grad = grad_abs / number_of_samples
+        lr_scaled_grad = relative_grad * lr * number_of_samples
+
+        # sign
+        unsigned_flips = torch.bernoulli(lr_scaled_grad)
+        signed_flips = unsigned_flips * grad_sign
+
+        # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
+        param.data = torch.sign(param.data - signed_flips)
+
+    return
