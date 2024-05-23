@@ -21,33 +21,31 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     continue
 
-                # TODO implement me...
                 expectation_sgd(param, number_of_samples, lr)
 
         return
 
 
 def expectation_sgd(
-    params: list[torch.Tensor],
+    param: torch.Tensor,
     number_of_samples: int,
     lr: float,
 ) -> None:
     # FIXME - currently going to assume symbols are {-1, 0, 1}...
-    for param in params:
-        grad_sign = torch.sign(param.grad)
-        grad_abs = torch.abs(param.grad)
+    grad_sign = torch.sign(param.grad).to(torch.int)
+    grad_abs = torch.abs(param.grad).to(torch.int)
 
-        # lr = 0 nothing is trained
-        # lr = 1 everything is towards the sign of its grad
-        # lr in between - higher grad is more likely to be nudged
-        relative_grad = grad_abs / number_of_samples
-        lr_scaled_grad = relative_grad * lr * number_of_samples
+    # lr = 0 nothing is trained
+    # lr = 1 everything is towards the sign of its grad
+    # lr in between - higher grad is more likely to be nudged
+    relative_grad = grad_abs / number_of_samples
+    lr_scaled_grad = relative_grad * lr * number_of_samples
 
-        # sign
-        unsigned_flips = torch.bernoulli(lr_scaled_grad)
-        signed_flips = unsigned_flips * grad_sign
+    # sign
+    unsigned_flips = torch.bernoulli(lr_scaled_grad)
+    signed_flips = unsigned_flips * grad_sign
 
-        # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
-        param.data = torch.sign(param.data - signed_flips)
+    # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
+    param.data = torch.sign(param.data - signed_flips).to(torch.int)
 
     return

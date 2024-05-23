@@ -41,17 +41,17 @@ test_l1_backward_cases = [
     (
         torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
         -torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        -torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
     ),
     (
         torch.Tensor([1, 1, -1, 1, 1, 1]).to(torch.int),
         torch.Tensor([1, -1, 1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([0, -1, 1, 0, 0, 0]).to(torch.int),
+        -torch.Tensor([0, -1, 1, 0, 0, 0]).to(torch.int),
     ),
     (
         torch.Tensor([-1, -1, -1, 1, 1, 1]).to(torch.int),
         torch.Tensor([1, -1, 1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, 0, 1, 0, 0, 0]).to(torch.int),
+        -torch.Tensor([1, 0, 1, 0, 0, 0]).to(torch.int),
     ),
 ]
 
