@@ -21,14 +21,14 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     continue
 
-                expectation_sgd(param, number_of_samples, lr)
+                expectation_sgd(param=param, max_abs=number_of_samples, lr=lr)
 
         return
 
 
 def expectation_sgd(
     param: torch.Tensor,
-    number_of_samples: int,
+    max_abs: int,
     lr: float,
 ) -> None:
     # FIXME - currently going to assume symbols are {-1, 0, 1}...
@@ -38,8 +38,8 @@ def expectation_sgd(
     # lr = 0 nothing is trained
     # lr = 1 everything is towards the sign of its grad
     # lr in between - higher grad is more likely to be nudged
-    relative_grad = grad_abs / number_of_samples
-    lr_scaled_grad = relative_grad * lr * number_of_samples
+    relative_grad = grad_abs / max_abs
+    lr_scaled_grad = relative_grad * lr * max_abs
     lr_clipped_scaled_grad = torch.clamp_max(lr_scaled_grad, 1)
 
     # sign
