@@ -1,5 +1,6 @@
 import torch
 
+import bnn.functions
 import bnn.layer
 
 
@@ -11,7 +12,12 @@ class TernBinNetwork(torch.nn.Module):
 
     dims: list[int]
 
-    def __init__(self, *dims: list[int]):
+    def __init__(
+        self,
+        *dims: list[int],
+        forward_func: bnn.functions.ForwardFunc = bnn.functions.forward.MatMultSign,
+        backward_func: bnn.functions.BackwardFunc = bnn.functions.backward.BackprojectAndTernarise,
+    ):
         super().__init__()
 
         self.layers = torch.nn.ModuleDict()
@@ -25,6 +31,8 @@ class TernBinNetwork(torch.nn.Module):
             layer = bnn.layer.TernBinLayer(
                 input_dim=input_dim,
                 output_dim=output_dim,
+                forward_func=forward_func,
+                backward_func=backward_func,
             )
 
             layer_name = f'TernBinLayer{i}'
