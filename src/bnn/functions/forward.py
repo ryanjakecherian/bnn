@@ -28,6 +28,7 @@ class SignBinarise(MatMulBinarise):
 
 class LayerMeanBinarise(MatMulBinarise):
     def binarise(self, x: torch.Tensor) -> torch.Tensor:
+        # NOTE means over layer dimension - samples stay indepenent :)
         means = torch.mean(x.to(torch.float), dim=-1)
 
         out = torch.empty_like(x)
@@ -40,6 +41,7 @@ class LayerMeanBinarise(MatMulBinarise):
 
 class LayerMedianBinarise(MatMulBinarise):
     def binarise(self, x: torch.Tensor) -> torch.Tensor:
+        # NOTE median over layer dimension - samples stay indepenent :)
         medians_out = torch.median(x, dim=-1)
         medians = medians_out.values
 

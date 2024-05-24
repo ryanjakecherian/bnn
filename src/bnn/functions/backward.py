@@ -57,6 +57,7 @@ class LayerMeanStdTernarise(BackprojectTernarise):
         self.half_range_stds = half_range_stds
 
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        # NOTE done over layer dimension - samples stay indepenent :)
         stds, means = torch.std_mean(grad.to(torch.float), dim=-1)
 
         out = torch.empty_like(grad)
@@ -80,6 +81,7 @@ class LayerQuantileTernarise(BackprojectTernarise):
         self.lo_hi_quant = torch.Tensor([lo, hi])
 
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        # NOTE done over layer dimension - samples stay indepenent :)
         lo_quants, hi_quants = torch.quantile(
             input=grad.to(torch.float),
             q=self.lo_hi_quant,
