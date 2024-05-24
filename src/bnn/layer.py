@@ -7,10 +7,18 @@ import bnn.random
 class TernBinLayer(torch.nn.Module):
     input_dim: int
     output_dim: int
+    forward_func: bnn.functions.ForwardFunc
+    backward_func: bnn.functions.BackwardFunc
 
     W: torch.nn.Parameter
 
-    def __init__(self, input_dim: int, output_dim: int):
+    def __init__(
+        self,
+        input_dim: int,
+        output_dim: int,
+        forward_func: bnn.functions.ForwardFunc,
+        backward_func: bnn.functions.BackwardFunc,
+    ):
         super().__init__()
 
         self.input_dim = input_dim
@@ -18,6 +26,9 @@ class TernBinLayer(torch.nn.Module):
 
         self._create_W()
         self._initialise_W()
+
+        self.forward_func = forward_func
+        self.backward_func = backward_func
 
     def _create_W(self):
         self.W = torch.nn.Parameter(
@@ -52,10 +63,7 @@ class TernBinLayer(torch.nn.Module):
         self.W.grad = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        integer = x @ self.W
-        out_binary = bnn.functions.binarise(x=integer, threshold=0)
-
-        return out_binary
+        return self.forward_func(x=x, W=self.W)
 
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
