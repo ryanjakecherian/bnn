@@ -15,7 +15,7 @@ class BackwardFunc(abc.ABC):
     ) -> tuple[torch.Tensor, torch.Tensor]: ...
 
 
-class SignTernarise(BackwardFunc):
+class BackprojectTernarise(BackwardFunc):
     def __call__(
         self,
         grad: torch.Tensor,
@@ -34,7 +34,15 @@ class SignTernarise(BackwardFunc):
         grad = grad @ W.T
         # TODO pick this threshold nicely... adaptively?
         # TODO implenent layer-normy type of thing...
-        grad = functions.ternarise(grad, threshold_lo=0, threshold_hi=1)
+        grad = self.ternarise(grad)
         grad_int = grad.to(torch.int)
 
         return W_grad_int, grad_int
+
+    @abc.abstractmethod
+    def ternarise(self, grad: torch.Tensor) -> torch.Tensor: ...
+
+
+class SignTernarise(BackwardFunc):
+    def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        return functions.ternarise(grad, threshold_lo=0, threshold_hi=1)
