@@ -1,6 +1,11 @@
 import torch
 import torch.autograd
 
+__all__ = [
+    'binarise',
+    'ternarise',
+]
+
 
 def binarise(x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
     out = torch.ones_like(x)
