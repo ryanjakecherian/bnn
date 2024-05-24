@@ -43,6 +43,6 @@ class BackprojectTernarise(BackwardFunc):
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor: ...
 
 
-class SignTernarise(BackwardFunc):
+class SignTernarise(BackprojectTernarise):
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
         return functions.ternarise(grad, threshold_lo=0, threshold_hi=1)
