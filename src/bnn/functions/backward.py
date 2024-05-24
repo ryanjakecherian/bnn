@@ -15,7 +15,7 @@ class BackwardFunc(abc.ABC):
     ) -> tuple[torch.Tensor, torch.Tensor]: ...
 
 
-class BackprojectAndTernarise(BackwardFunc):
+class SignTernarise(BackwardFunc):
     def __call__(
         self,
         grad: torch.Tensor,

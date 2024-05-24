@@ -10,7 +10,7 @@ class ForwardFunc(abc.ABC):
     def __call__(self, x: torch.Tensor, W: torch.Tensor) -> torch.Tensor: ...
 
 
-class MatMultSign(ForwardFunc):
+class SignBinarise(ForwardFunc):
     def __call__(self, x: torch.Tensor, W: torch.Tensor) -> torch.Tensor:
         integer = x @ W
         out_binary = functions.binarise(x=integer, threshold=0)

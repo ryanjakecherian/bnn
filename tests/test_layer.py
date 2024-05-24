@@ -12,8 +12,8 @@ def get_layer_with_W():
         layer = bnn.layer.TernBinLayer(
             input_dim=input_dim,
             output_dim=output_dim,
-            forward_func=bnn.functions.forward.MatMultSign(),
-            backward_func=bnn.functions.backward.BackprojectAndTernarise(),
+            forward_func=bnn.functions.forward.SignBinarise(),
+            backward_func=bnn.functions.backward.SignTernarise(),
         )
         layer.W.data = W.clone()
         layer.W.grad = None
