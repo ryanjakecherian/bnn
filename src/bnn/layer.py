@@ -67,7 +67,6 @@ class TernBinLayer(torch.nn.Module):
 
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
-        # FIXME check if long_int -> int conversion is safe!
         W_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W)
 
         self.W.grad = W_grad
