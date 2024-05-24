@@ -1,3 +1,4 @@
+import bnn.functions
 import bnn.layer
 import pytest
 import torch
@@ -8,7 +9,12 @@ def get_layer_with_W():
     def get_layer_with_W_(W: torch.Tensor) -> bnn.layer.TernBinLayer:
         input_dim, output_dim = W.shape
 
-        layer = bnn.layer.TernBinLayer(input_dim=input_dim, output_dim=output_dim)
+        layer = bnn.layer.TernBinLayer(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            forward_func=bnn.functions.forward.MatMultSign(),
+            backward_func=bnn.functions.backward.BackprojectAndTernarise(),
+        )
         layer.W.data = W.clone()
         layer.W.grad = None
 
