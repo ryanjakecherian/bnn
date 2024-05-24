@@ -3,7 +3,5 @@ __all__ = [
     'forward',
 ]
 
-import backward
-import forward
-
+from . import backward, forward
 from .functions import *
