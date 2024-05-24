@@ -65,6 +65,8 @@ class LayerMeanStdTernarise(BackprojectTernarise):
             out[i] = functions.ternarise(
                 x=grad_,
                 threshold_lo=mean - std * self.half_range_stds,
+                # NOTE threshold_hi is inclusive, ie ternarise(thresh_hi) = 1
+                # therefore, adding EPS ensures grad=zeros is stable under ternarisation
                 threshold_hi=mean + std * self.half_range_stds + EPS,
             )
 
@@ -90,6 +92,8 @@ class LayerQuantileTernarise(BackprojectTernarise):
             out[i] = functions.ternarise(
                 x=grad_,
                 threshold_lo=lo_q,
+                # NOTE threshold_hi is inclusive, ie ternarise(thresh_hi) = 1
+                # therefore, adding EPS ensures grad=zeros is stable under ternarisation
                 threshold_hi=hi_q + EPS,
             )
 
