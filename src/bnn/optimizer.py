@@ -40,9 +40,10 @@ def expectation_sgd(
     # lr in between - higher grad is more likely to be nudged
     relative_grad = grad_abs / number_of_samples
     lr_scaled_grad = relative_grad * lr * number_of_samples
+    lr_clipped_scaled_grad = torch.clamp_max(lr_scaled_grad, 1)
 
     # sign
-    unsigned_flips = torch.bernoulli(lr_scaled_grad)
+    unsigned_flips = torch.bernoulli(lr_clipped_scaled_grad)
     signed_flips = unsigned_flips * grad_sign
 
     # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
