@@ -68,21 +68,11 @@ class TernBinLayer(torch.nn.Module):
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
         # FIXME check if long_int -> int conversion is safe!
-        W_grad = grad.unsqueeze(-2) * activation.unsqueeze(-1)
+        W_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W)
 
-        while W_grad.dim() > 2:
-            W_grad = W_grad.sum(0)
+        self.W.grad = W_grad
 
-        # TODO should this be ternarised?
-        W_grad_int = W_grad.to(torch.int)
-        self.W.grad = W_grad_int
-
-        grad = grad @ self.W.T
-        # TODO pick this threshold nicely... adaptively?
-        # TODO implenent layer-normy type of thing...
-        grad = bnn.functions.ternarise(grad, threshold_lo=0, threshold_hi=1)
-
-        return grad.to(torch.int)
+        return out_grad
 
     def __repr__(self):
         return f'W: {self.W}'
