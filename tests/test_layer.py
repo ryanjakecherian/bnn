@@ -79,6 +79,7 @@ test_forward_cases = [
 ]
 
 
+# TODO refactor test to match code refactor
 @pytest.mark.parametrize('W, x, expected_out', test_forward_cases)
 def test_forward(W, x, expected_out, get_layer_with_W):
     layer: bnn.layer.TernBinLayer = get_layer_with_W(W)
@@ -221,6 +222,7 @@ test_backward_cases = [
 ]
 
 
+# TODO refactor test to match code refactor
 @pytest.mark.parametrize('W, grad, activation, expected_out_grad, expected_W_grad', test_backward_cases)
 def test_backward(W, grad, activation, expected_out_grad, expected_W_grad, get_layer_with_W):
     layer: bnn.layer.TernBinLayer = get_layer_with_W(W)
