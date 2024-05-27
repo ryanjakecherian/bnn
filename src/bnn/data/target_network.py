@@ -7,6 +7,10 @@ import bnn.network
 
 from .data_loader import DataLoader, LabelledDatum
 
+__all__ = [
+    'target_network_factory',
+]
+
 
 class TargetNetwork(DataLoader):
     _target_network: bnn.network.TernBinNetwork
@@ -56,15 +60,8 @@ class TargetNetwork(DataLoader):
         return self._datapoints
 
     def __next__(self) -> LabelledDatum:
-        if self._iteration >= self._datapoints:
-            raise StopIteration
-
-        # calculate size
-        size = min(self.batch_size, self._datapoints - self._iteration)
-
-        # stop if uneven batch size and don't include last
-        if (not self._include_last_if_uneven) and (size != self.batch_size):
-            raise StopIteration
+        # calculate next batch size
+        size = self._get_next_batch_size()
 
         # random input
         input = bnn.functions.binarise(torch.randn(size, self._target_network.dims[0])).to(torch.int)
@@ -86,9 +83,10 @@ def target_network_factory(
     target_network: bnn.network.TernBinNetwork,
     include_last_if_uneven: bool = False,
 ) -> TargetNetwork:
-    return TargetNetwork(
+    TNDL = TargetNetwork(
         datapoints=datapoints,
         batch_size=batch_size,
         target_network=target_network,
         include_last_if_uneven=include_last_if_uneven,
     )
+    return TNDL
