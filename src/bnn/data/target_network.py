@@ -5,10 +5,10 @@ import torch
 import bnn.functions
 import bnn.network
 
-from .data_loader import TrainingDataLoader, TrainingDatum
+from .data_loader import DataLoader, TrainingDatum
 
 
-class TargetNetwork(TrainingDataLoader):
+class TargetNetwork(DataLoader):
     _target_network: bnn.network.TernBinNetwork
     _include_last_if_uneven: bool
     _datapoints: int
