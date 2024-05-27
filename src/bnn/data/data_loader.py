@@ -4,7 +4,7 @@ import typing
 import torch
 
 
-class TrainingDatum(typing.NamedTuple):
+class LabelledDatum(typing.NamedTuple):
     input: torch.Tensor
     target: torch.Tensor
 
@@ -20,10 +20,10 @@ class DataLoader(abc.ABC):
     def set_batch_size(self, batch_size: int): ...
 
     @abc.abstractmethod
-    def __next__(self) -> TrainingDatum: ...
+    def __next__(self) -> LabelledDatum: ...
 
     @abc.abstractmethod
-    def __iter__(self) -> typing.Generator[TrainingDatum, None, None]: ...
+    def __iter__(self) -> typing.Generator[LabelledDatum, None, None]: ...
 
     @abc.abstractmethod
     def __len__(self) -> int: ...

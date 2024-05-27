@@ -5,7 +5,7 @@ import torch
 import bnn.functions
 import bnn.network
 
-from .data_loader import DataLoader, TrainingDatum
+from .data_loader import DataLoader, LabelledDatum
 
 
 class TargetNetwork(DataLoader):
@@ -55,7 +55,7 @@ class TargetNetwork(DataLoader):
     def __len__(self) -> int:
         return self._datapoints
 
-    def __next__(self) -> TrainingDatum:
+    def __next__(self) -> LabelledDatum:
         if self._iteration >= self._datapoints:
             raise StopIteration
 
@@ -73,9 +73,9 @@ class TargetNetwork(DataLoader):
         # count iterations
         self._count_its(size)
 
-        return TrainingDatum(target=output, input=input)
+        return LabelledDatum(target=output, input=input)
 
-    def __iter__(self) -> typing.Generator[TrainingDatum, None, None]:
+    def __iter__(self) -> typing.Generator[LabelledDatum, None, None]:
         self._reset_its()
         return self
 
