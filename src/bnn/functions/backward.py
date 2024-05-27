@@ -63,12 +63,16 @@ class LayerMeanStdTernarise(BackprojectTernarise):
         out = torch.empty_like(grad)
 
         for i, (grad_, std, mean) in enumerate(zip(grad, stds, means)):
+            # don't allow sign to change
+            threshold_lo = min(mean - std * self.half_range_stds, 0)
+            # NOTE threshold_hi is inclusive, ie ternarise(thresh_hi) = 1
+            # therefore, adding EPS ensures grad=zeros is stable under ternarisation
+            threshold_hi = max(mean + std * self.half_range_stds + EPS, 0)
+
             out[i] = functions.ternarise(
                 x=grad_,
-                threshold_lo=mean - std * self.half_range_stds,
-                # NOTE threshold_hi is inclusive, ie ternarise(thresh_hi) = 1
-                # therefore, adding EPS ensures grad=zeros is stable under ternarisation
-                threshold_hi=mean + std * self.half_range_stds + EPS,
+                threshold_lo=threshold_lo,
+                threshold_hi=threshold_hi,
             )
 
         return out
@@ -87,6 +91,8 @@ class LayerQuantileTernarise(BackprojectTernarise):
             q=self.lo_hi_quant,
             dim=-1,
         )
+        lo_quants = torch.clamp_max(lo_quants, max=0)
+        hi_quants = torch.clamp_min(hi_quants, min=0)
 
         out = torch.empty_like(grad)
 
