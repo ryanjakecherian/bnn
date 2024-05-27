@@ -15,7 +15,17 @@ class DataLoader(abc.ABC):
     _datapoints: int
     _iteration: int
 
-    def __init__(self):
+    def __init__(
+        self,
+        datapoints: int,
+        batch_size: int,
+        include_last_if_uneven: bool = False,
+    ):
+        # save
+        self._datapoints = datapoints
+        self._batch_size = batch_size
+        self._include_last_if_uneven = include_last_if_uneven
+        # init and healthcheck
         self._reset_its()
         self._healthcheck()
 

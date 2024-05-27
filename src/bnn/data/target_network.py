@@ -15,20 +15,9 @@ __all__ = [
 class TargetNetwork(DataLoader):
     _target_network: bnn.network.TernBinNetwork
 
-    def __init__(
-        self,
-        datapoints: int,
-        batch_size: int,
-        target_network: bnn.network.TernBinNetwork,
-        include_last_if_uneven: bool = False,
-    ):
+    def __init__(self, target_network: bnn.network.TernBinNetwork, *args, **kwargs):
         self._target_network = target_network
-        self._batch_size = batch_size
-        self._include_last_if_uneven = include_last_if_uneven
-        self._datapoints = datapoints
-
-        self._reset_its()
-        self._healthcheck()
+        super().__init__(*args, **kwargs)
 
     def _healthcheck(self):
         if self._datapoints <= 0:
