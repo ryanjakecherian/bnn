@@ -33,13 +33,10 @@ class DataLoader(abc.ABC):
     def _healthcheck(self): ...
 
     @abc.abstractmethod
-    def set_batch_size(self, batch_size: int): ...
+    def _next(self, size: int) -> LabelledDatum: ...
 
-    @abc.abstractmethod
-    def __next__(self) -> LabelledDatum: ...
-
-    @abc.abstractmethod
-    def __iter__(self) -> typing.Generator[LabelledDatum, None, None]: ...
+    def set_batch_size(self, batch_size: int):
+        self._batch_size = batch_size
 
     def __len__(self) -> int:
         return self._datapoints
@@ -69,3 +66,12 @@ class DataLoader(abc.ABC):
             raise StopIteration
 
         return next_batch_size
+
+    def __next__(self) -> LabelledDatum:
+        size = self._get_next_batch_size()
+        self._count_its(size)
+        return self._next(size)
+
+    def __iter__(self) -> typing.Generator[LabelledDatum, None, None]:
+        self._reset_its()
+        return self
