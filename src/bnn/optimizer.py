@@ -13,7 +13,7 @@ class ExpectationSGD(torch.optim.Optimizer):
     def __setstate__(self, state):
         super().__setstate__(state)
 
-    def step(self, number_of_samples: int) -> None:
+    def step(self) -> None:
         for group in self.param_groups:
             lr = group['lr']
 
@@ -21,14 +21,13 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     continue
 
-                expectation_sgd(param=param, max_abs=number_of_samples, lr=lr)
+                expectation_sgd(param=param, lr=lr)
 
         return
 
 
 def expectation_sgd(
     param: torch.Tensor,
-    max_abs: int,
     lr: float,
 ) -> None:
     # FIXME - currently going to assume symbols are {-1, 0, 1}...
