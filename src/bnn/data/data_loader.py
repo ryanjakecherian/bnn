@@ -13,11 +13,14 @@ class DataLoader(abc.ABC):
     _batch_size: int
     _include_last_if_uneven: int
     _datapoints: int
-    _its: int
+    _iteration: int
 
-    def __init__(self, shuffle: bool, batch_size: int):
-        self.shuffle = shuffle
-        self.batch_size = batch_size
+    def __init__(self):
+        self._reset_its()
+        self._healthcheck()
+
+    @abc.abstractmethod
+    def _healthcheck(self): ...
 
     @abc.abstractmethod
     def set_batch_size(self, batch_size: int): ...
@@ -31,6 +34,12 @@ class DataLoader(abc.ABC):
     def __len__(self) -> int:
         return self._datapoints
 
+    def _reset_its(self):
+        self._iteration = 0
+
+    def _count_its(self, count: int):
+        self._iteration += count
+
     def _get_next_batch_size(self) -> int:
         """Calculate next batch size from self._batch_size.
 
@@ -40,10 +49,10 @@ class DataLoader(abc.ABC):
         Returns:
             Int: Next batch size.
         """
-        if self._its >= self._datapoints:
+        if self._iteration >= self._datapoints:
             raise StopIteration
 
-        next_batch_size = min(self._batch_size, self._datapoints - self._its)
+        next_batch_size = min(self._batch_size, self._datapoints - self._iteration)
 
         # stop if uneven batch size and don't include last
         if (not self._include_last_if_uneven) and (next_batch_size != self.batch_size):

@@ -14,9 +14,6 @@ __all__ = [
 
 class TargetNetwork(DataLoader):
     _target_network: bnn.network.TernBinNetwork
-    _include_last_if_uneven: bool
-    _datapoints: int
-    _iteration: int
 
     def __init__(
         self,
@@ -26,7 +23,7 @@ class TargetNetwork(DataLoader):
         include_last_if_uneven: bool = False,
     ):
         self._target_network = target_network
-        self.batch_size = batch_size
+        self._batch_size = batch_size
         self._include_last_if_uneven = include_last_if_uneven
         self._datapoints = datapoints
 
@@ -37,24 +34,18 @@ class TargetNetwork(DataLoader):
         if self._datapoints <= 0:
             raise ValueError(f'Datapoints must be > 0, received {self._datapoints}')
 
-        if self.batch_size <= 0:
-            raise ValueError(f'Batch size must be > 0, received {self.batch_size}')
+        if self._batch_size <= 0:
+            raise ValueError(f'Batch size must be > 0, received {self._batch_size}')
 
-        if (not self._include_last_if_uneven) and (self._datapoints < self.batch_size):
+        if (not self._include_last_if_uneven) and (self._datapoints < self._batch_size):
             raise ValueError('Batch size < Datapoints and excluding last batch, so no data.')
 
-        if self._datapoints < self.batch_size:
-            raise Warning(f'Batch size ({self.batch_size}) > Datapoints ({self._datapoints}).')
+        if self._datapoints < self._batch_size:
+            raise Warning(f'Batch size ({self._batch_size}) > Datapoints ({self._datapoints}).')
 
     def set_batch_size(self, batch_size: int):
-        self.batch_size = batch_size
+        self._batch_size = batch_size
         self._healthcheck()
-
-    def _reset_its(self):
-        self._iteration = 0
-
-    def _count_its(self, count: int):
-        self._iteration += count
 
     def __len__(self) -> int:
         return self._datapoints
