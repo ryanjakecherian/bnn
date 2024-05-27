@@ -38,8 +38,7 @@ def expectation_sgd(
     # lr = 0 nothing is trained
     # lr = 1 everything is towards the sign of its grad
     # lr in between - higher grad is more likely to be nudged
-    relative_grad = grad_abs / max_abs
-    lr_scaled_grad = relative_grad * lr * max_abs
+    lr_scaled_grad = grad_abs * lr
     lr_clipped_scaled_grad = torch.clamp_max(lr_scaled_grad, 1)
 
     # sign

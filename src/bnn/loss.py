@@ -19,6 +19,7 @@ class l1(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
         incorrect = torch.abs(target - output)
+        # TODO overflow?
         loss = incorrect.sum()
 
         return loss

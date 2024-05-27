@@ -120,3 +120,12 @@ class TernBinNetwork(torch.nn.Module):
             self.grad[layer_name].data = grad
 
         return grad
+
+
+def network_params_al_ternary(Net: torch.nn.Module) -> bool:
+    for parameter in Net.parameters():
+        is_one = parameter == 1
+        is_neg_one = parameter == -1
+        is_zero = parameter == 0
+
+        return torch.all(is_one | is_neg_one | is_zero)
