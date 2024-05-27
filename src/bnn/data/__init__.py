@@ -1,8 +1,8 @@
 __all__ = [
-    'DataLoader',
+    'TrainingDataLoader',
     'TrainingDatum',
     'TargetNetwork',
 ]
 
-from .data_loader import DataLoader, TrainingDatum
+from .data_loader import TrainingDataLoader, TrainingDatum
 from .target_network import TargetNetwork

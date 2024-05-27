@@ -9,7 +9,7 @@ class TrainingDatum(typing.NamedTuple):
     target: torch.Tensor
 
 
-class DataLoader(abc.ABC):
+class TrainingDataLoader(abc.ABC):
     batch_size: int
 
     def __init__(self, shuffle: bool, batch_size: int):
