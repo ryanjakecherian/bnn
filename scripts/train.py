@@ -49,15 +49,17 @@ def train(
         else:
             zero_loss_count = 0
 
-        # metrics
-        metrics['loss'] = epoch_loss
-        if (epoch % log_rate) == 0:
-            wandb.log(metrics)
-
         early_exit = zero_loss_count >= zero_loss_count_for_early_stop
 
+        # metrics
+        metrics['loss'] = epoch_loss
         if early_exit or (epoch % log_rate) == 0:
-            print(f'epoch: {epoch}\tloss: {loss}')
+            wandb.log(metrics)
+
+            log_str = f'epoch: {epoch}\t'
+            log_str += '\t'.join([f'{key}: {value:.4g}' for key, value in metrics.items()])
+
+            print(log_str)
 
         if early_exit:
             break
@@ -68,7 +70,7 @@ def main(cfg: omegaconf.DictConfig):
     # resolve config
     omegaconf.OmegaConf.resolve(cfg)
 
-    wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project)
+    wandb.init(project='train_network')
 
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
     data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.data_loader)

@@ -4,7 +4,6 @@ defaults:
   - data: target_net
   - optimizer: ExpectationSGD
   - loss: l1
-  - wandb: defaults
   # Pretty logging with hydra_colorlog
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
@@ -15,8 +14,6 @@ train:
   log_rate: 25
   lr: 0.0005
   batch_size: 1000
-
-experiment: train
 
 hydra:
   # Logging configuration: https://hydra.cc/docs/tutorials/basic/running_your_app/logging/
