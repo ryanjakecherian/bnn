@@ -3,6 +3,11 @@ import typing
 
 import torch
 
+__all__ = [
+    'LabelledDatum',
+    'DataLoader',
+]
+
 
 class LabelledDatum(typing.NamedTuple):
     input: torch.Tensor

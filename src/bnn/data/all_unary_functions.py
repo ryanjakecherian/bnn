@@ -4,6 +4,10 @@ import bnn.functions
 
 from .data_loader import DataLoader, LabelledDatum
 
+__all__ = [
+    'AllUnaryFunctionsDataLoader',
+]
+
 
 class AllUnaryFunctionsDataLoader(DataLoader):
     _input_dim: int

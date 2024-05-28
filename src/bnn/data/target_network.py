@@ -5,6 +5,10 @@ import bnn.network
 
 from .data_loader import DataLoader, LabelledDatum
 
+__all__ = [
+    'TargetNetworkDataLoader',
+]
+
 
 class TargetNetworkDataLoader(DataLoader):
     _target_network: bnn.network.TernBinNetwork

@@ -4,6 +4,14 @@ import torch
 
 from . import functions
 
+__all__ = [
+    'ForwardFunc',
+    'MatMulBinarise',
+    'SignBinarise',
+    'LayerMeanBinarise',
+    'LayerMedianBinarise',
+]
+
 
 class ForwardFunc(abc.ABC):
     @abc.abstractmethod
