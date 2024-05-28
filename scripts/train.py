@@ -69,13 +69,20 @@ def train(
             break
 
 
+def setup_wandb(cfg: omegaconf.DictConfig):
+    wandb_config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    wandb.init(project='train_network', config=wandb_config)
+
+    wandb.define_metric('train/epoch')
+    wandb.define_metric('train/*', step_metric='train/epoch')
+
+    return
+
+
 @hydra.main(config_path='../config', config_name='main', version_base=None)
 def main(cfg: omegaconf.DictConfig):
     # resolve config
     omegaconf.OmegaConf.resolve(cfg)
-
-    wandb_config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-    wandb.init(project='train_network', config=wandb_config)
 
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
     data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.data_loader)
@@ -87,8 +94,7 @@ def main(cfg: omegaconf.DictConfig):
 
     network._initialise(W_mean=0, W_zero_prob=0.5)
 
-    wandb.define_metric('train/epoch')
-    wandb.define_metric('train/*', step_metric='train/epoch')
+    setup_wandb(cfg=cfg)
 
     train(
         TBNN=network,
