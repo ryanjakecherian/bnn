@@ -1,5 +1,9 @@
 import torch
 
+__all__ = [
+    'ExpectationSGD',
+]
+
 
 class ExpectationSGD(torch.optim.Optimizer):
     def __init__(self, params, lr: float):
@@ -21,12 +25,12 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     continue
 
-                expectation_sgd(param=param, lr=lr)
+                _expectation_sgd(param=param, lr=lr)
 
         return
 
 
-def expectation_sgd(
+def _expectation_sgd(
     param: torch.Tensor,
     lr: float,
 ) -> None:

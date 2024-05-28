@@ -3,6 +3,10 @@ import torch
 import bnn.functions
 import bnn.random
 
+__all__ = [
+    'TernBinLayer',
+]
+
 
 class TernBinLayer(torch.nn.Module):
     input_dim: int

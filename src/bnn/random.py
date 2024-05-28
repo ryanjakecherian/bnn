@@ -1,5 +1,18 @@
 import torch
 
+__all__ = [
+    'calc_desired_var',
+    'generate_random_ternary_tensor',
+    'get_ternary_distribution_from_mean_and_zero_prob',
+    'sample_iid_tensor_from_discrete_distribution',
+    'discrete_mean',
+    'discrete_var',
+    'DISCRETE_DIST',
+    'TERNARY_DIST',
+    'check_is_valid_probability',
+    'check_is_valid_distribution',
+]
+
 
 def calc_desired_var(
     dim: int,

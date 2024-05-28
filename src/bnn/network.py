@@ -3,6 +3,10 @@ import torch
 import bnn.functions
 import bnn.layer
 
+__all__ = [
+    'TernBinNetwork',
+]
+
 
 class TernBinNetwork(torch.nn.Module):
     layers: torch.nn.ModuleDict

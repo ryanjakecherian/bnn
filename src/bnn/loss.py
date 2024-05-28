@@ -4,6 +4,11 @@ import torch
 
 import bnn.functions
 
+__all___ = [
+    'LossFunction',
+    'l1',
+]
+
 
 class LossFunction(abc.ABC):
     @staticmethod
