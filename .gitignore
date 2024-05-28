@@ -73,3 +73,6 @@ ENV/
 # Hydra
 multirun
 outputs
+
+# Wandb
+wandb/
