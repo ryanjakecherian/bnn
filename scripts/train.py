@@ -5,6 +5,8 @@ import omegaconf
 import torch
 import tqdm
 
+import wandb
+
 omegaconf.OmegaConf.register_new_resolver(
     name='sandwich_list',
     resolver=bnn.config.sandwich_list,
@@ -16,11 +18,9 @@ def train(
     loss_func: bnn.loss.LossFunction,
     DL: bnn.data.DataLoader,
     optimizer: torch.optim.Optimizer,
-    num_logs: int,
+    log_rate: int,
     train_epochs: int,
 ):
-    epoch_log_rate = train_epochs // num_logs
-
     zero_loss_count = 0
     zero_loss_count_for_early_stop = 10
 
@@ -49,9 +49,14 @@ def train(
         else:
             zero_loss_count = 0
 
+        # metrics
+        metrics['loss'] = epoch_loss
+        if (epoch % log_rate) == 0:
+            wandb.log(metrics)
+
         early_exit = zero_loss_count >= zero_loss_count_for_early_stop
 
-        if early_exit or (epoch % epoch_log_rate) == 0:
+        if early_exit or (epoch % log_rate) == 0:
             print(f'epoch: {epoch}\tloss: {loss}')
 
         if early_exit:
@@ -62,6 +67,8 @@ def train(
 def main(cfg: omegaconf.DictConfig):
     # resolve config
     omegaconf.OmegaConf.resolve(cfg)
+
+    wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project)
 
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
     data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.data_loader)
@@ -79,7 +86,7 @@ def main(cfg: omegaconf.DictConfig):
         DL=data_loader,
         optimizer=optim,
         train_epochs=cfg.train.epochs,
-        num_logs=cfg.train.num_logs,
+        log_rate=cfg.train.log_rate,
     )
 
 
