@@ -17,10 +17,7 @@ class ExpectationSGD(torch.optim.Optimizer):
     def __setstate__(self, state):
         super().__setstate__(state)
 
-    def step(self, metrics: dict | None = None) -> None:
-        if metrics is None:
-            metrics = dict()
-
+    def step(self) -> float:
         # for metrics
         total_flips = 0
         total_parameters = 0
@@ -39,11 +36,10 @@ class ExpectationSGD(torch.optim.Optimizer):
                 total_flips += num_flips
                 total_parameters += num_parameters
 
-        # save number of flips
+        # calc number of flips
         proportion_flipped = total_flips / total_parameters
-        metrics['proportion_flipped'] = proportion_flipped
 
-        return
+        return proportion_flipped
 
 
 def _expectation_sgd(
@@ -65,11 +61,10 @@ def _expectation_sgd(
     signed_flips = unsigned_flips * grad_sign
 
     # only flip if it isn't saturated
-    saturated = (signed_flips * param.data) == -1
-    signed_flips[saturated] = 0
-    num_flipped = torch.sum(torch.abs(signed_flips))
+    un_saturated = (signed_flips * param.data) == 1
+    num_flipped = torch.sum(un_saturated)
 
     # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
-    param.data = (param.data - signed_flips).to(torch.int)
+    param.data = torch.sign((param.data - signed_flips)).to(torch.int)
 
     return num_flipped

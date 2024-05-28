@@ -29,6 +29,7 @@ def train(
         assert bnn.network.network_params_al_ternary(TBNN)
 
         epoch_loss = 0
+        epoch_proportion_flipped = 0
         for batch in DL:
             # forward pass and loss
             output = TBNN.forward(batch.input)
@@ -39,7 +40,7 @@ def train(
             TBNN.backward(grad)
 
             # optimizer step
-            optimizer.step(metrics)
+            epoch_proportion_flipped += optimizer.step()
 
             # sum loss
             epoch_loss += loss
@@ -52,7 +53,10 @@ def train(
         early_exit = zero_loss_count >= zero_loss_count_for_early_stop
 
         # metrics
-        metrics['loss'] = epoch_loss
+        metrics['train/epoch'] = epoch
+        metrics['train/loss'] = epoch_loss
+        metrics['train/proportion_flipped'] = epoch_proportion_flipped
+
         if early_exit or (epoch % log_rate) == 0:
             wandb.log(metrics)
 
@@ -70,7 +74,8 @@ def main(cfg: omegaconf.DictConfig):
     # resolve config
     omegaconf.OmegaConf.resolve(cfg)
 
-    wandb.init(project='train_network')
+    wandb_config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    wandb.init(project='train_network', config=wandb_config)
 
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
     data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.data_loader)
@@ -81,6 +86,9 @@ def main(cfg: omegaconf.DictConfig):
     )
 
     network._initialise(W_mean=0, W_zero_prob=0.5)
+
+    wandb.define_metric('train/epoch')
+    wandb.define_metric('train/*', step_metric='train/epoch')
 
     train(
         TBNN=network,
