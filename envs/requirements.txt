@@ -1,6 +1,6 @@
 # requirements.txt files are used to specify Python package dependencies.
 # Version pins aid reproducibility and fresh re-installs.
-# Tighter version pins i.e. '==' rather than '>=' aid reproducibility, but, 
+# Tighter version pins i.e. '==' rather than '>=' aid reproducibility, but,
 # in the Wild West of Python packaging, nothing is guaranteed...
 
 # Common numerical computing libraries.
@@ -22,3 +22,4 @@ hydra_core>=1.3.2 # Elegant application configuration from CLI + YAML files.
 hydra_colorlog>=1.2.0 # Hydra extension for colorful log outputs.
 
 torch
+wandb
