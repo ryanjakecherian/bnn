@@ -64,6 +64,7 @@ ENV/
 .mypy_cache/
 .pytest_cache/
 .tox/
+.ruff_cache/
 
 # Remove logs (*.log, log.txt) and rotated logs (log.txt.1)
 *.log

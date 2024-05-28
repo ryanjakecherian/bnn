@@ -59,14 +59,14 @@ def test_random_data(random_data: RandomTestData):
 
 @pytest.fixture
 def get_network():
-    def get_network_(*dims: list[int]) -> bnn.network.TernBinNetwork:
-        return bnn.network.TernBinNetwork(*dims)
+    def get_network_(dims: list[int]) -> bnn.network.TernBinNetwork:
+        return bnn.network.TernBinNetwork(dims)
 
     return get_network_
 
 
 def test_get_network(get_network):
-    network = get_network(16, 32, 64, 32, 16)
+    network = get_network([16, 32, 64, 32, 16])
     assert isinstance(network, bnn.network.TernBinNetwork)
     return
 
@@ -84,7 +84,7 @@ def get_random_network(request, get_network, random_data):
     random_dims = request.param
 
     def get_random_network_(input_dim, output_dim):
-        return get_network(random_data.input_dim, *random_dims, random_data.output_dim)
+        return get_network([random_data.input_dim, *random_dims, random_data.output_dim])
 
     return get_random_network_
 
@@ -226,7 +226,7 @@ def test_integration_forwards_and_backwards_set_data(
 ):
     # assemble network
     dims = [len(W) for W in Ws] + [len(expected_out)]
-    network: bnn.network.TernBinNetwork = get_network(*dims)
+    network: bnn.network.TernBinNetwork = get_network(dims)
 
     for W, layer in zip(Ws, network.layers.values()):
         layer: bnn.layer.TernBinLayer

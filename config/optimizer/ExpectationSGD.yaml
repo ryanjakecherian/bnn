@@ -1,0 +1,2 @@
+_target_: bnn.optimizer.ExpectationSGD
+lr: ${train.lr}

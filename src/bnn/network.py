@@ -18,7 +18,7 @@ class TernBinNetwork(torch.nn.Module):
 
     def __init__(
         self,
-        *dims: list[int],
+        dims: list[int],
         forward_func: bnn.functions.ForwardFunc = bnn.functions.forward.SignBinarise(),
         backward_func: bnn.functions.BackwardFunc = bnn.functions.backward.SignTernarise(),
     ):

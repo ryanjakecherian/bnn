@@ -18,9 +18,12 @@ class TargetNetworkDataLoader(DataLoader):
         target_network: bnn.network.TernBinNetwork,
         datapoints: int,
         batch_size: int,
+        W_mean: float = 0,
+        W_zero_prob: float = 0.8,
         include_last_if_uneven: bool = False,
     ):
         self._target_network = target_network
+        self._target_network._initialise(W_mean=W_mean, W_zero_prob=W_zero_prob)
         super().__init__(
             datapoints=datapoints,
             batch_size=batch_size,
@@ -39,6 +42,8 @@ class TargetNetworkDataLoader(DataLoader):
 
         if self._datapoints < self._batch_size:
             raise Warning(f'Batch size ({self._batch_size}) > Datapoints ({self._datapoints}).')
+
+        assert bnn.network.network_params_al_ternary(self._target_network)
 
     def _next(self, size: int) -> LabelledDatum:
         # random input

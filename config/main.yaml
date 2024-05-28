@@ -1,7 +1,35 @@
 # Main Hydra configuration file.
 defaults:
-# Pretty logging with hydra_colorlog
+  - network: TBNN
+  - data: target_net
+  - optimizer: ExpectationSGD
+  - loss: l1
+  # Pretty logging with hydra_colorlog
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
+  - _self_
 
-input_val: 1
+train:
+  epochs: 500
+  num_logs: 10
+  lr: 0.0005
+  batch_size: 1000
+
+hydra:
+  # Logging configuration: https://hydra.cc/docs/tutorials/basic/running_your_app/logging/
+  verbose: False
+  # Logs to stdout and to a file.
+  job_logging:
+    handlers:
+      console:
+        class: logging.StreamHandler
+        stream: ext://sys.stdout
+      file:
+        filename:
+          ${hydra.runtime.output_dir}/${hydra.job.name}_${oc.select:hydra.job.num, 0}.log
+  # Set the output directory to /tmp to dump logs.
+  run:
+    dir: /tmp/hydra/logs/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir:  /tmp/hydra/logs/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}

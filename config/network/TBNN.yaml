@@ -1,0 +1,12 @@
+_target_: bnn.network.TernBinNetwork
+dims:
+  - ${data.input_dim}
+  - 256
+  - 256
+  - ${data.output_dim}
+forward_func:
+  _target_: bnn.functions.forward.SignBinarise
+backward_func:
+  _target_: bnn.functions.backward.LayerQuantileTernarise
+  lo: 0.25
+  hi: 0.75
