@@ -1,4 +1,5 @@
 import random
+import time
 
 import wandb
 
@@ -18,6 +19,8 @@ wandb.init(
 epochs = 10
 offset = random.random() / 5
 for epoch in range(2, epochs):
+    time.sleep(5)
+
     acc = 1 - 2**-epoch - random.random() / epoch - offset
     loss = 2**-epoch + random.random() / epoch + offset
 
