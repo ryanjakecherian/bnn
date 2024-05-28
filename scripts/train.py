@@ -25,7 +25,9 @@ def train(
     zero_loss_count_for_early_stop = 10
 
     for epoch in tqdm.trange(train_epochs):
+        metrics = {}
         assert bnn.network.network_params_al_ternary(TBNN)
+
         epoch_loss = 0
         for batch in DL:
             # forward pass and loss
@@ -37,7 +39,7 @@ def train(
             TBNN.backward(grad)
 
             # optimizer step
-            optimizer.step()
+            optimizer.step(metrics)
 
             # sum loss
             epoch_loss += loss

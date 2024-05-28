@@ -17,7 +17,14 @@ class ExpectationSGD(torch.optim.Optimizer):
     def __setstate__(self, state):
         super().__setstate__(state)
 
-    def step(self) -> None:
+    def step(self, metrics: dict | None = None) -> None:
+        if metrics is None:
+            metrics = dict()
+
+        # for metrics
+        total_flips = 0
+        total_parameters = 0
+
         for group in self.param_groups:
             lr = group['lr']
 
@@ -25,7 +32,16 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     continue
 
-                _expectation_sgd(param=param, lr=lr)
+                # aggregate number of flips
+                num_flips = _expectation_sgd(param=param, lr=lr)
+                num_parameters = torch.numel(param.data)
+
+                total_flips += num_flips
+                total_parameters += num_parameters
+
+        # save number of flips
+        proportion_flipped = total_flips / total_parameters
+        metrics['proportion_flipped'] = proportion_flipped
 
         return
 
@@ -33,7 +49,7 @@ class ExpectationSGD(torch.optim.Optimizer):
 def _expectation_sgd(
     param: torch.Tensor,
     lr: float,
-) -> None:
+) -> int:
     # FIXME - currently going to assume symbols are {-1, 0, 1}...
     grad_sign = torch.sign(param.grad).to(torch.int)
     grad_abs = torch.abs(param.grad).to(torch.int)
@@ -48,7 +64,12 @@ def _expectation_sgd(
     unsigned_flips = torch.bernoulli(lr_clipped_scaled_grad)
     signed_flips = unsigned_flips * grad_sign
 
-    # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
-    param.data = torch.sign(param.data - signed_flips).to(torch.int)
+    # only flip if it isn't saturated
+    saturated = (signed_flips * param.data) == -1
+    signed_flips[saturated] = 0
+    num_flipped = torch.sum(torch.abs(signed_flips))
 
-    return
+    # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
+    param.data = (param.data - signed_flips).to(torch.int)
+
+    return num_flipped
