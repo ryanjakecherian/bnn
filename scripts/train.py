@@ -1,8 +1,14 @@
 import bnn
+import bnn.config
 import hydra
 import omegaconf
 import torch
 import tqdm
+
+omegaconf.OmegaConf.register_new_resolver(
+    name='sandwich_list',
+    resolver=bnn.config.sandwich_list,
+)
 
 
 def train(
@@ -52,7 +58,10 @@ def train(
 
 @hydra.main(config_path='../config', config_name='main', version_base=None)
 def main(cfg: omegaconf.DictConfig):
-    network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network)
+    # resolve config
+    omegaconf.OmegaConf.resolve(cfg)
+
+    network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
     data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.data_loader)
     loss_func: bnn.loss.LossFunction = hydra.utils.instantiate(cfg.loss)
     optim: torch.optim.Optimizer = hydra.utils.instantiate(
