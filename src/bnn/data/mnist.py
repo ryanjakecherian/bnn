@@ -17,7 +17,9 @@ __all__ = [
 class MNISTDataLoader(DataLoader):
     _loader: torch.utils.data.DataLoader
     _iter: typing.Generator
-    binarise_thresh: float
+    _binarise_thresh: float
+    input_size: int = 28 * 28
+    output_size: int = 10
 
     def __init__(
         self,
@@ -41,7 +43,7 @@ class MNISTDataLoader(DataLoader):
             batch_size=batch_size,
             shuffle=shuffle,
         )
-        self.binarise_thresh = binarise_thesh
+        self._binarise_thresh = binarise_thesh
 
         super().__init__(
             datapoints=len(dataset),
@@ -58,5 +60,6 @@ class MNISTDataLoader(DataLoader):
 
     def _next(self, size: int) -> LabelledDatum:
         image, label = next(self._iter)
-        int_image = bnn.functions.binarise(image, threshold=self.binarise_thresh)
+        int_image = bnn.functions.binarise(image, threshold=self._binarise_thresh)
+        int_image = int_image.reshape(-1, self.input_size)
         return LabelledDatum(input=int_image, target=label)
