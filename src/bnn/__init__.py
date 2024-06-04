@@ -8,6 +8,7 @@ __all__ = [
     'loss',
     'optimizer',
     'data',
+    'metrics',
 ]
 
-from . import data, functions, layer, loss, network, optimizer, random
+from . import data, functions, layer, loss, metrics, network, optimizer, random
