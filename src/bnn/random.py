@@ -40,6 +40,9 @@ class VALUE_PROB_PAIR(typing.NamedTuple):
     value: float
     probability: float
 
+    def __str__(self):
+        return f'value: {self.value} probability: {self.probability}'
+
 
 DISCRETE_DIST = list[VALUE_PROB_PAIR]
 TERNARY_DIST = tuple[VALUE_PROB_PAIR, VALUE_PROB_PAIR, VALUE_PROB_PAIR]

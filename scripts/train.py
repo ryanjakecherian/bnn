@@ -1,5 +1,6 @@
 import bnn
 import bnn.config
+import bnn.metrics
 import hydra
 import omegaconf
 import torch
@@ -52,16 +53,44 @@ def train(
 
         early_exit = zero_loss_count >= zero_loss_count_for_early_stop
 
-        # metrics
-        metrics['train/epoch'] = epoch
-        metrics['train/loss'] = epoch_loss
-        metrics['train/proportion_flipped'] = epoch_proportion_flipped
-
         if early_exit or (epoch % log_rate) == 0:
+            # metrics
+            metrics['train/epoch'] = epoch
+            metrics['train/loss'] = epoch_loss
+            metrics['train/proportion_flipped'] = epoch_proportion_flipped
+
+            # images
+            w_ds = []
+            w_g_ds = []
+            for name, param in TBNN.named_parameters():
+                if 'W' not in name:
+                    continue
+                w_ds.append(bnn.metrics.distribution(param.data))
+                w_g_ds.append(bnn.metrics.distribution(param.grad))
+
+            i_ds = []
+            for input in TBNN.input.values():
+                i_ds.append(bnn.metrics.distribution(input))
+
+            g_ds = []
+            for grad in TBNN.grad.values():
+                g_ds.append(bnn.metrics.distribution(grad))
+
+            w_ds_im = bnn.metrics.distribution_plot(w_ds)
+            w_g_ds_im = bnn.metrics.distribution_plot(w_g_ds)
+            i_ds_im = bnn.metrics.distribution_plot(i_ds)
+            g_ds_im = bnn.metrics.distribution_plot(g_ds)
+
+            metrics['image/weights'] = wandb.Image(w_ds_im)
+            metrics['image/weight_grads'] = wandb.Image(w_g_ds_im)
+            metrics['image/inputs'] = wandb.Image(i_ds_im)
+            metrics['image/grads'] = wandb.Image(g_ds_im)
+
+            # log
             wandb.log(metrics)
 
             log_str = f'epoch: {epoch}\t'
-            log_str += '\t'.join([f'{key}: {value:.4g}' for key, value in metrics.items()])
+            log_str += '\t'.join([f'{key}: {value:.4g}' for key, value in metrics.items() if 'image' not in key])
 
             print(log_str)
 
