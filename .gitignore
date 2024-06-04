@@ -76,3 +76,6 @@ outputs
 
 # Wandb
 wandb/
+
+# Data
+**/data/

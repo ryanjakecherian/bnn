@@ -59,6 +59,23 @@ def train(
             metrics['train/loss'] = epoch_loss
             metrics['train/proportion_flipped'] = epoch_proportion_flipped
 
+            total_w_g = 0
+            total_w_g_0 = 0
+            for name, param in TBNN.named_parameters():
+                if 'W' not in name:
+                    continue
+                total_w_g += torch.numel(param.grad)
+                total_w_g_0 += torch.sum(param.grad == 0).item()
+
+            total_a_g = 0
+            total_a_g_0 = 0
+            for grad in TBNN.grad.values():
+                total_a_g += torch.numel(grad)
+                total_a_g_0 += torch.sum(grad == 0).item()
+
+            metrics['train/prop_w_g_nonzero'] = 1 - total_w_g_0 / total_w_g
+            metrics['train/prop_a_g_nonzero'] = 1 - total_a_g_0 / total_a_g
+
             # images
             w_ds = []
             w_g_ds = []
