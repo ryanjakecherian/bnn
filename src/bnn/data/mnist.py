@@ -5,6 +5,8 @@ import torch
 import torch.utils.data
 import torchvision
 
+import bnn.functions
+
 from .data_loader import DataLoader, LabelledDatum
 
 __all__ = [
@@ -15,6 +17,7 @@ __all__ = [
 class MNISTDataLoader(DataLoader):
     _loader: torch.utils.data.DataLoader
     _iter: typing.Generator
+    binarise_thresh: float
 
     def __init__(
         self,
@@ -22,6 +25,7 @@ class MNISTDataLoader(DataLoader):
         download: bool,
         train: bool,
         batch_size: int,
+        binarise_thesh: float = 0.5,
         shuffle: bool = True,
         include_last_if_uneven: bool = False,
     ):
@@ -37,6 +41,7 @@ class MNISTDataLoader(DataLoader):
             batch_size=batch_size,
             shuffle=shuffle,
         )
+        self.binarise_thresh = binarise_thesh
 
         super().__init__(
             datapoints=len(dataset),
@@ -53,4 +58,5 @@ class MNISTDataLoader(DataLoader):
 
     def _next(self, size: int) -> LabelledDatum:
         image, label = next(self._iter)
-        return LabelledDatum(input=image, target=label)
+        int_image = bnn.functions.binarise(image, threshold=self.binarise_thresh)
+        return LabelledDatum(input=int_image, target=label)

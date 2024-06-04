@@ -33,3 +33,13 @@ class l1(LossFunction):
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         error = output - target
         return bnn.functions.ternarise(error, threshold_lo=0, threshold_hi=1)
+
+
+class CrossEntropyLoss(LossFunction):
+    @staticmethod
+    def forward(output: torch.Tensor, target: torch.Tensor) -> int:
+        return NotImplemented
+
+    @staticmethod
+    def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        return NotImplemented
