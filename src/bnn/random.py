@@ -1,3 +1,5 @@
+import typing
+
 import torch
 
 __all__ = [
@@ -34,7 +36,11 @@ def generate_random_ternary_tensor(
     return random
 
 
-VALUE_PROB_PAIR = tuple[int, float]
+class VALUE_PROB_PAIR(typing.NamedTuple):
+    value: float
+    probability: float
+
+
 DISCRETE_DIST = list[VALUE_PROB_PAIR]
 TERNARY_DIST = tuple[VALUE_PROB_PAIR, VALUE_PROB_PAIR, VALUE_PROB_PAIR]
 
@@ -52,7 +58,11 @@ def get_ternary_distribution_from_mean_and_var(
 
     check_is_valid_probability(p_PLUS, p_MINUS, p_ZERO)
 
-    return (-1, p_MINUS), (0, p_ZERO), (1, p_PLUS)
+    MINUS = VALUE_PROB_PAIR(value=-1, probability=p_MINUS)
+    ZERO = VALUE_PROB_PAIR(value=0, probability=p_ZERO)
+    PLUS = VALUE_PROB_PAIR(value=1, probability=p_PLUS)
+
+    return MINUS, ZERO, PLUS
 
 
 def get_ternary_distribution_from_mean_and_zero_prob(
@@ -70,7 +80,11 @@ def get_ternary_distribution_from_mean_and_zero_prob(
 
     check_is_valid_probability(p_PLUS, p_MINUS, p_ZERO)
 
-    return (-1, p_MINUS), (0, p_ZERO), (1, p_PLUS)
+    MINUS = VALUE_PROB_PAIR(value=-1, probability=p_MINUS)
+    ZERO = VALUE_PROB_PAIR(value=0, probability=p_ZERO)
+    PLUS = VALUE_PROB_PAIR(value=1, probability=p_PLUS)
+
+    return MINUS, ZERO, PLUS
 
 
 def sample_iid_tensor_from_discrete_distribution(
@@ -83,7 +97,9 @@ def sample_iid_tensor_from_discrete_distribution(
 
     uniform = torch.rand_like(out, dtype=torch.float)
 
-    for value, prob in distribution:
+    for value_prob in distribution:
+        value, prob = value_prob.value, value_prob.probability
+
         uniform -= prob
         out[uniform < 0] = value
         uniform[uniform < 0] += 1
@@ -92,12 +108,12 @@ def sample_iid_tensor_from_discrete_distribution(
 
 
 def discrete_mean(dist: DISCRETE_DIST) -> float:
-    return sum(prob * value for value, prob in dist)
+    return sum(pair.probability * pair.value for pair in dist)
 
 
 def discrete_var(dist: DISCRETE_DIST) -> float:
     mean = discrete_mean(dist)
-    return sum(value**2 * prob for value, prob in dist) - mean**2
+    return sum(pair.value**2 * pair.probability for pair in dist) - mean**2
 
 
 def check_is_valid_probability(*xs: list[float]) -> None:
@@ -115,7 +131,7 @@ def check_is_valid_probability(*xs: list[float]) -> None:
 
 
 def check_is_valid_distribution(distribution: DISCRETE_DIST) -> None:
-    _, probs = zip(*distribution)
+    probs = [pair.probability for pair in distribution]
 
     check_is_valid_probability(*probs)
 

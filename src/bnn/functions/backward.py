@@ -114,3 +114,7 @@ class LayerQuantileTernarise(BackprojectTernarise):
             )
 
         return out
+
+
+# TODO
+# clamp on the absolute value? - symmetric thresholds

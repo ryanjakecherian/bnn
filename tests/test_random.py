@@ -1,6 +1,7 @@
 import bnn.random
 import pytest
 import torch
+from bnn.random import VALUE_PROB_PAIR as VPP
 
 test_generate_random_ternary_tensor_cases = [0.1 * i for i in range(11)]
 
@@ -24,19 +25,19 @@ def test_generate_random_ternary_tensor(desired_var):
 
 test_discrete_mean_cases = [
     (
-        [(1, 1)],
+        [VPP(1, 1)],
         1,
     ),
     (
-        [(0, 0.5), (1, 0.5)],
+        [VPP(0, 0.5), VPP(1, 0.5)],
         0.5,
     ),
     (
-        [(-1, 0), (0, 0.5), (1, 0.5)],
+        [VPP(-1, 0), VPP(0, 0.5), VPP(1, 0.5)],
         0.5,
     ),
     (
-        [(-1, 0.4), (0, 0.2), (1, 0.4)],
+        [VPP(-1, 0.4), VPP(0, 0.2), VPP(1, 0.4)],
         0,
     ),
 ]
@@ -50,19 +51,19 @@ def test_discrete_mean(distr, expected_mean):
 
 test_discrete_var_cases = [
     (
-        [(1, 1)],
+        [VPP(1, 1)],
         0,
     ),
     (
-        [(0, 0.5), (1, 0.5)],
+        [VPP(0, 0.5), VPP(1, 0.5)],
         0.25,
     ),
     (
-        [(-1, 0), (0, 0.5), (1, 0.5)],
+        [VPP(-1, 0), VPP(0, 0.5), VPP(1, 0.5)],
         0.25,
     ),
     (
-        [(-1, 0.4), (0, 0.2), (1, 0.4)],
+        [VPP(-1, 0.4), VPP(0, 0.2), VPP(1, 0.4)],
         0.8,
     ),
 ]
@@ -94,8 +95,8 @@ test_get_ternary_distribution_from_mean_and_var_cases = [
 def test_get_ternary_distribution_from_mean_and_var(mean, var):
     distribution = bnn.random.get_ternary_distribution_from_mean_and_var(mean, var)
 
-    assert set(value for value, _ in distribution) == {-1, 0, 1}
-    assert sum(prob for _, prob in distribution) == pytest.approx(1)
+    assert set(pair.value for pair in distribution) == {-1, 0, 1}
+    assert sum(pair.probability for pair in distribution) == pytest.approx(1)
 
     assert bnn.random.discrete_mean(distribution) == pytest.approx(mean)
     assert bnn.random.discrete_var(distribution) == pytest.approx(var)
@@ -119,26 +120,26 @@ def test_get_ternary_distribution_from_mean_and_zero_prob(mean, zero_prob):
         zero_prob=zero_prob,
     )
 
-    assert set(value for value, _ in distribution) == {-1, 0, 1}
-    assert sum(prob for _, prob in distribution) == pytest.approx(1)
+    assert set(pair.value for pair in distribution) == {-1, 0, 1}
+    assert sum(pair.probability for pair in distribution) == pytest.approx(1)
 
     approx_zero = pytest.approx(zero_prob)
     assert bnn.random.discrete_mean(distribution) == pytest.approx(mean)
-    assert sum(prob for value, prob in distribution if value == 0) == approx_zero
+    assert sum(pair.probability for pair in distribution if pair.value == 0) == approx_zero
 
 
 test_sample_iid_tensor_from_discrete_distribution_cases = [
     (
         (1000, 1000),
-        [(-1, 0.5), (1, 0.5)],
+        [VPP(-1, 0.5), VPP(1, 0.5)],
     ),
     (
         (1000, 1000, 1, 1),
-        [(-1, 0.5), (1, 0.5)],
+        [VPP(-1, 0.5), VPP(1, 0.5)],
     ),
     (
         (1000, 1000),
-        [(-1, 0.2), (0, 0.3), (1, 0.5)],
+        [VPP(-1, 0.2), VPP(0, 0.3), VPP(1, 0.5)],
     ),
 ]
 
@@ -155,17 +156,18 @@ def test_sample_iid_tensor_from_discrete_distribution(shape, distribution):
     assert tensor.shape == shape
 
     tensor = tensor.flatten()
-    for value, prob in distribution:
+    for pair in distribution:
+        value, prob = pair.value, pair.probability
         empirical_prob = torch.sum(tensor == value) / len(tensor)
         assert empirical_prob == pytest.approx(prob, abs=0.05)
 
 
 test_check_is_valid_distribution_cases = [
-    ([(1, 1), (1, 1), (1, 1)], ValueError),
-    ([(1, 1), (1, 1), (1, 0)], ValueError),
-    ([(-1, 0.5), (0, 0.5), (1, 0.5)], ValueError),
-    ([(-1, 0.5), (0, 0.1), (1, 0.1)], ValueError),
-    ([(-1, 2), (1, -1)], ValueError),
+    ([VPP(1, 1), VPP(1, 1), VPP(1, 1)], ValueError),
+    ([VPP(1, 1), VPP(1, 1), VPP(1, 0)], ValueError),
+    ([VPP(-1, 0.5), VPP(0, 0.5), VPP(1, 0.5)], ValueError),
+    ([VPP(-1, 0.5), VPP(0, 0.1), VPP(1, 0.1)], ValueError),
+    ([VPP(-1, 2), VPP(1, -1)], ValueError),
 ]
 
 
