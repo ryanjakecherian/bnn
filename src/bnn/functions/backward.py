@@ -38,12 +38,9 @@ class BackprojectTernarise(BackwardFunc):
         while W_grad.dim() > 2:
             W_grad = W_grad.sum(0)
 
-        # TODO should this be ternarised?
         W_grad_int = W_grad.to(torch.int)
 
         grad = grad @ W.T
-        # TODO pick this threshold nicely... adaptively?
-        # TODO implenent layer-normy type of thing...
         tern_grad = self.ternarise(grad)
         tern_grad_int = tern_grad.to(torch.int)
 
@@ -138,7 +135,3 @@ class LayerQuantileSymmetricTernarise(BackprojectTernarise):
         out *= torch.sign(grad)
 
         return out
-
-
-# TODO
-# clamp on the absolute value? - symmetric thresholds
