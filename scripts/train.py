@@ -102,10 +102,10 @@ def train(
             i_ds_im = bnn.metrics.distribution_plot(i_ds)
             g_ds_im = bnn.metrics.distribution_plot(g_ds)
 
-            metrics['image/weights'] = wandb.Image(w_ds_im)
-            metrics['image/weight_grads'] = wandb.Image(w_g_ds_im)
-            metrics['image/inputs'] = wandb.Image(i_ds_im)
-            metrics['image/grads'] = wandb.Image(g_ds_im)
+            metrics['image/weights'] = wandb.Image(w_ds_im, caption=f'epoch_{epoch}')
+            metrics['image/weight_grads'] = wandb.Image(w_g_ds_im, caption=f'epoch_{epoch}')
+            metrics['image/inputs'] = wandb.Image(i_ds_im, caption=f'epoch_{epoch}')
+            metrics['image/grads'] = wandb.Image(g_ds_im, caption=f'epoch_{epoch}')
 
             # log
             wandb.log(metrics)
