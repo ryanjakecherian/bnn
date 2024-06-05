@@ -30,8 +30,12 @@ def train(
         assert bnn.network.network_params_al_ternary(TBNN)
 
         epoch_loss = 0
+        datapoints = 0
         epoch_proportion_flipped = 0
-        for batch in DL:
+        for batch_id, batch in enumerate(DL):
+            # number of dps seen...
+            datapoints += len(batch.input)
+
             # forward pass and loss
             output = TBNN.forward(batch.input)
             loss = loss_func.forward(output=output, target=batch.target)
@@ -56,8 +60,8 @@ def train(
         if early_exit or (epoch % log_rate) == 0:
             # metrics
             metrics['train/epoch'] = epoch
-            metrics['train/loss'] = epoch_loss
-            metrics['train/proportion_flipped'] = epoch_proportion_flipped
+            metrics['train/mean_loss'] = epoch_loss / datapoints
+            metrics['train/mean_proportion_flipped'] = epoch_proportion_flipped / len(DL)
 
             total_w_g = 0
             total_w_g_0 = 0

@@ -24,8 +24,8 @@ class l1(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
         incorrect = torch.abs(target - output)
-        # TODO overflow?
-        loss = incorrect.sum()
+        # HACK overflow?
+        loss = torch.sum(incorrect)
 
         return loss
 
@@ -38,8 +38,12 @@ class l1(LossFunction):
 class CrossEntropyLoss(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
-        return NotImplemented
+        # assume out is logits
+        neg_log_softmax = -torch.nn.LogSoftmax(dim=-1)(output.to(float))
+        loss = torch.mean(neg_log_softmax[target])
+        return loss
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return NotImplemented
+        scaled_target = target.to(torch.int) * 2 - 1
+        return torch.sign(scaled_target - output)
