@@ -1,0 +1,9 @@
+hidden_dims: [256, 256]
+
+model:
+  _target_: bnn.network.TernBinNetwork
+  dims: ${sandwich_list:${data.input_dim},${network.hidden_dims},${data.output_dim}}
+  forward_func:
+    _target_: bnn.functions.forward.SignBinarise
+  backward_func:
+    _target_: bnn.functions.backward.SignTernarise

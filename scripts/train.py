@@ -57,7 +57,7 @@ def train(
 
         early_exit = zero_loss_count >= zero_loss_count_for_early_stop
 
-        if early_exit or (epoch % log_rate) == 0:
+        if early_exit or (epoch % log_rate) == 0 or (epoch + 1 == train_epochs):
             # metrics
             metrics['train/epoch'] = epoch
             metrics['train/mean_loss'] = epoch_loss / datapoints
@@ -65,11 +65,15 @@ def train(
 
             total_w_g = 0
             total_w_g_0 = 0
+            total_w = 0
+            total_w_0 = 0
             for name, param in TBNN.named_parameters():
                 if 'W' not in name:
                     continue
                 total_w_g += torch.numel(param.grad)
                 total_w_g_0 += torch.sum(param.grad == 0).item()
+                total_w += torch.numel(param)
+                total_w_0 += torch.sum(param == 0).item()
 
             total_a_g = 0
             total_a_g_0 = 0
@@ -77,8 +81,16 @@ def train(
                 total_a_g += torch.numel(grad)
                 total_a_g_0 += torch.sum(grad == 0).item()
 
+            total_a = 0
+            total_a_0 = 0
+            for input in TBNN.input.values():
+                total_a += torch.numel(input)
+                total_a_0 += torch.sum(input == 0).item()
+
             metrics['train/prop_w_g_nonzero'] = 1 - total_w_g_0 / total_w_g
+            metrics['train/prop_w_nonzero'] = 1 - total_w_0 / total_w
             metrics['train/prop_a_g_nonzero'] = 1 - total_a_g_0 / total_a_g
+            metrics['train/prop_a_nonzero'] = 1 - total_a_0 / total_a
 
             # images
             w_ds = []

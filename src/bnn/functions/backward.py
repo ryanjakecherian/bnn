@@ -116,5 +116,29 @@ class LayerQuantileTernarise(BackprojectTernarise):
         return out
 
 
+class LayerQuantileSymmetricTernarise(BackprojectTernarise):
+    prop_zero: float
+
+    def __init__(self, prop_zero: float = 1 / 3):
+        self.prop_zero = prop_zero
+
+    def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        abs_grad = torch.abs(grad)
+
+        # NOTE done over layer dimension - samples stay indepenent :)
+        quants = torch.quantile(
+            input=abs_grad.to(torch.float),
+            q=self.prop_zero,
+            dim=-1,
+        )
+
+        out = torch.zeros_like(grad)
+
+        out[(abs_grad - quants) > 0] = 1
+        out *= torch.sign(grad)
+
+        return out
+
+
 # TODO
 # clamp on the absolute value? - symmetric thresholds
