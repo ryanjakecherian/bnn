@@ -2,8 +2,6 @@ import abc
 
 import torch
 
-import bnn.functions
-
 __all___ = [
     'LossFunction',
     'l1',
@@ -23,16 +21,26 @@ class LossFunction(abc.ABC):
 class l1(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
-        incorrect = torch.abs(target - output)
-        # HACK overflow?
-        loss = torch.sum(incorrect)
-
+        error = torch.abs(output - target)
+        loss = torch.sum(error)
         return loss
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        error = output - target
-        return bnn.functions.ternarise(error, threshold_lo=0, threshold_hi=1)
+        return torch.sign(output - target)
+
+
+class l2(LossFunction):
+    @staticmethod
+    def forward(output: torch.Tensor, target: torch.Tensor) -> int:
+        error = torch.square(output - target)
+        loss = torch.sqrt(torch.sum(error))
+        return loss
+
+    # TODO implement me
+    @staticmethod
+    def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        return torch.sign(output - target)
 
 
 class CrossEntropyLoss(LossFunction):

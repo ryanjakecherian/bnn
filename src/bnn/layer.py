@@ -22,7 +22,7 @@ class TernBinLayer(torch.nn.Module):
         output_dim: int,
         forward_func: bnn.functions.ForwardFunc,
         backward_func: bnn.functions.BackwardFunc,
-        device: torch.device | None,
+        device: torch.device | None = None,
     ):
         super().__init__()
 
