@@ -40,7 +40,6 @@ class TernBinLayer(torch.nn.Module):
     def to(self, device: torch.device):
         try:
             self.backward_func.to(device)
-            print('YAYAYAY')
         except AttributeError:
             pass
         super().to(device)

@@ -153,10 +153,16 @@ def main(cfg: omegaconf.DictConfig):
         config=cfg.optimizer,
         params=network.parameters(),
     )
-
     network._initialise(W_mean=0, W_zero_prob=0.5)
 
     setup_wandb(cfg=cfg)
+
+    if cfg.train.gpu:
+        if not torch.cuda.is_available():
+            raise RuntimeError('No GPU available!')
+        device = torch.device('cuda:0')
+        network.to(device)
+        data_loader.to(device)
 
     train(
         TBNN=network,

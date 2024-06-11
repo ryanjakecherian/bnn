@@ -14,11 +14,22 @@ class LabelledDatum(typing.NamedTuple):
     target: torch.Tensor
 
 
+def _place_labelled_datum_on_device(
+    labelled_datum: LabelledDatum,
+    device: torch.device,
+):
+    return LabelledDatum(
+        input=labelled_datum.input.to(device),
+        target=labelled_datum.target.to(device),
+    )
+
+
 class DataLoader(abc.ABC):
     _batch_size: int
     _include_last_if_uneven: int
     _datapoints: int
     _iteration: int
+    _device: torch.device | None = None
 
     def __init__(
         self,
@@ -39,6 +50,9 @@ class DataLoader(abc.ABC):
 
     @abc.abstractmethod
     def _next(self, size: int) -> LabelledDatum: ...
+
+    def to(self, device: torch.device):
+        self._device = device
 
     def set_batch_size(self, batch_size: int):
         self._batch_size = batch_size
@@ -83,7 +97,8 @@ class DataLoader(abc.ABC):
     def __next__(self) -> LabelledDatum:
         size = self._get_next_batch_size()
         self._count_its(size)
-        return self._next(size)
+        datum_on_device = _place_labelled_datum_on_device(labelled_datum=self._next(size), device=self._device)
+        return datum_on_device
 
     def __iter__(self) -> typing.Generator[LabelledDatum, None, None]:
         self._reset_its()

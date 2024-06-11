@@ -15,6 +15,7 @@ train:
   log_rate: 25
   lr: 0.0005
   batch_size: 1000
+  gpu: True
 
 hydra:
   # Logging configuration: https://hydra.cc/docs/tutorials/basic/running_your_app/logging/

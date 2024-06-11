@@ -33,10 +33,11 @@ class BackprojectTernarise(BackwardFunc):
         W: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         # FIXME check if long_int -> int conversion is safe!
-        W_grad = grad.unsqueeze(-2) * input.unsqueeze(-1)
-
-        while W_grad.dim() > 2:
-            W_grad = W_grad.sum(0)
+        W_grad = torch.einsum(
+            '...j,...k->jk',
+            input.to(functions.TORCH_FLOAT_TYPE),
+            grad.to(functions.TORCH_FLOAT_TYPE),
+        ).to(W.dtype)
 
         W_grad_int = W_grad.to(torch.int)
 
@@ -102,7 +103,6 @@ class LayerQuantileTernarise(BackprojectTernarise):
                 dim=-1,
             )
         except RuntimeError:
-            print('GRRR')
             self.to(torch.get_device(grad))
             lo_quants, hi_quants = torch.quantile(
                 input=grad.to(torch.float),
