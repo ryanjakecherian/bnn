@@ -40,7 +40,8 @@ class BackprojectTernarise(BackwardFunc):
 
         W_grad_int = W_grad.to(torch.int)
 
-        grad = grad @ W.T
+        # TODO - make this configurable?
+        grad = functions.int_matmul(grad, W.T)
         tern_grad = self.ternarise(grad)
         tern_grad_int = tern_grad.to(torch.int)
 

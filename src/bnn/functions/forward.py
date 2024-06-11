@@ -20,9 +20,8 @@ class ForwardFunc(abc.ABC):
 
 class MatMulBinarise(ForwardFunc):
     def __call__(self, x: torch.Tensor, W: torch.Tensor) -> torch.Tensor:
-        # BUG
-        # integer matmul not supported on GPU, but concerned about converting to float?
-        integer = x @ W
+        # TODO - make this configurable?
+        integer = functions.int_matmul(x, W)
         out_binary = self.binarise(x=integer)
 
         return out_binary

@@ -4,6 +4,7 @@ import torch.autograd
 __all__ = [
     'binarise',
     'ternarise',
+    'int_matmul',
 ]
 
 
@@ -28,3 +29,13 @@ def ternarise(
     out[x < threshold_lo] = -1
 
     return out
+
+
+# HACK - this is technically "unsafe", but should be fine for reasonable layer sizes!
+def int_matmul(
+    A: torch.Tensor,
+    B: torch.Tensor,
+) -> torch.Tensor:
+    AB_float = torch.matmul(A.to(float), B.to(float))
+    AB_int = torch.round(AB_float).to(torch.int)
+    return AB_int
