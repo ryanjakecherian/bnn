@@ -90,13 +90,25 @@ class LayerQuantileTernarise(BackprojectTernarise):
     def __init__(self, lo: float = 0.3, hi: float = 0.7):
         self.lo_hi_quant = torch.Tensor([lo, hi])
 
+    def to(self, device: torch.device):
+        self.lo_hi_quant = self.lo_hi_quant.to(device)
+
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
         # NOTE done over layer dimension - samples stay indepenent :)
-        lo_quants, hi_quants = torch.quantile(
-            input=grad.to(torch.float),
-            q=self.lo_hi_quant,
-            dim=-1,
-        )
+        try:
+            lo_quants, hi_quants = torch.quantile(
+                input=grad.to(torch.float),
+                q=self.lo_hi_quant,
+                dim=-1,
+            )
+        except RuntimeError:
+            print('GRRR')
+            self.to(torch.get_device(grad))
+            lo_quants, hi_quants = torch.quantile(
+                input=grad.to(torch.float),
+                q=self.lo_hi_quant,
+                dim=-1,
+            )
         lo_quants = torch.clamp_max(lo_quants, max=0)
         hi_quants = torch.clamp_min(hi_quants, min=0)
 

@@ -31,11 +31,14 @@ def ternarise(
     return out
 
 
+TORCH_FLOAT_TYPE = torch.float16
+
+
 # HACK - this is technically "unsafe", but should be fine for reasonable layer sizes!
 def int_matmul(
     A: torch.Tensor,
     B: torch.Tensor,
 ) -> torch.Tensor:
-    AB_float = torch.matmul(A.to(float), B.to(float))
+    AB_float = torch.matmul(A.to(TORCH_FLOAT_TYPE), B.to(TORCH_FLOAT_TYPE))
     AB_int = torch.round(AB_float).to(torch.int)
     return AB_int

@@ -21,6 +21,7 @@ class TernBinNetwork(torch.nn.Module):
         dims: list[int],
         forward_func: bnn.functions.ForwardFunc = bnn.functions.forward.SignBinarise(),
         backward_func: bnn.functions.BackwardFunc = bnn.functions.backward.SignTernarise(),
+        device: torch.device | None = None,
     ):
         super().__init__()
 
@@ -37,6 +38,7 @@ class TernBinNetwork(torch.nn.Module):
                 output_dim=output_dim,
                 forward_func=forward_func,
                 backward_func=backward_func,
+                device=device,
             )
 
             layer_name = f'TernBinLayer{i}'
