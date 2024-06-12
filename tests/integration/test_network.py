@@ -60,7 +60,11 @@ def test_random_data(random_data: RandomTestData):
 @pytest.fixture
 def get_network():
     def get_network_(dims: list[int]) -> bnn.network.TernBinNetwork:
-        return bnn.network.TernBinNetwork(dims)
+        return bnn.network.TernBinNetwork(
+            dims=dims,
+            forward_func=bnn.functions.forward.SignBinarise(),
+            backward_func=bnn.functions.backward.SignTernarise(),
+        )
 
     return get_network_
 

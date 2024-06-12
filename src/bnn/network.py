@@ -19,8 +19,8 @@ class TernBinNetwork(torch.nn.Module):
     def __init__(
         self,
         dims: list[int],
-        forward_func: bnn.functions.ForwardFunc = bnn.functions.forward.SignBinarise(),
-        backward_func: bnn.functions.BackwardFunc = bnn.functions.backward.SignTernarise(),
+        forward_func: bnn.functions.ForwardFunc | list[bnn.functions.ForwardFunc],
+        backward_func: bnn.functions.BackwardFunc | list[bnn.functions.BackwardFunc],
     ):
         super().__init__()
 
@@ -30,13 +30,28 @@ class TernBinNetwork(torch.nn.Module):
 
         self.dims = dims
 
+        n_layers = len(dims) - 1
+        # check forward/back func list length
+        if isinstance(forward_func, bnn.functions.ForwardFunc):
+            forward_func = [forward_func] * n_layers
+        else:
+            if len(forward_func) != n_layers:
+                raise ValueError(f'{len(forward_func)}s forward funcs but {len(dims)} layers')
+
+        if isinstance(backward_func, bnn.functions.BackwardFunc):
+            backward_func = [backward_func] * n_layers
+        else:
+            if len(backward_func) != n_layers:
+                raise ValueError(f'{len(backward_func)}s backward funcs but {n_layers} layers')
+
         # init layers
-        for i, (input_dim, output_dim) in enumerate(zip(dims, dims[1:])):
+        layers_zip = zip(dims, dims[1:], forward_func, backward_func)
+        for i, (input_dim, output_dim, f_func, b_func) in enumerate(layers_zip):
             layer = bnn.layer.TernBinLayer(
                 input_dim=input_dim,
                 output_dim=output_dim,
-                forward_func=forward_func,
-                backward_func=backward_func,
+                forward_func=f_func,
+                backward_func=b_func,
             )
 
             layer_name = f'TernBinLayer{i}'
