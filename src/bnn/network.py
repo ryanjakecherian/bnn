@@ -21,7 +21,6 @@ class TernBinNetwork(torch.nn.Module):
         dims: list[int],
         forward_func: bnn.functions.ForwardFunc = bnn.functions.forward.SignBinarise(),
         backward_func: bnn.functions.BackwardFunc = bnn.functions.backward.SignTernarise(),
-        device: torch.device | None = None,
     ):
         super().__init__()
 
@@ -38,14 +37,12 @@ class TernBinNetwork(torch.nn.Module):
                 output_dim=output_dim,
                 forward_func=forward_func,
                 backward_func=backward_func,
-                device=device,
             )
 
             layer_name = f'TernBinLayer{i}'
             self.layers[layer_name] = layer
 
         self._clear_input_and_grad()
-
         return
 
     def _clear_input_and_grad(self) -> None:
@@ -109,6 +106,17 @@ class TernBinNetwork(torch.nn.Module):
         self._clear_input_and_grad()
 
         return
+
+    def forward_no_proj(self, x: torch.Tensor) -> torch.Tensor:
+        last_layer = list(self.layers.keys())[-1]
+
+        for layer_name, layer in self.layers.items():
+            if layer_name != last_layer:
+                self.input[layer_name].data = x
+                x = layer(x)
+
+        x = bnn.functions.int_matmul(x, layer.W)
+        return x
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer_name, layer in self.layers.items():

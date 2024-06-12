@@ -22,7 +22,6 @@ class TernBinLayer(torch.nn.Module):
         output_dim: int,
         forward_func: bnn.functions.ForwardFunc,
         backward_func: bnn.functions.BackwardFunc,
-        device: torch.device | None = None,
     ):
         super().__init__()
 
@@ -34,8 +33,6 @@ class TernBinLayer(torch.nn.Module):
 
         self.forward_func = forward_func
         self.backward_func = backward_func
-
-        self.to(device)
 
     def to(self, device: torch.device):
         try:

@@ -71,3 +71,33 @@ test_binarise_cases = [
 def test_binarise(inputs, expected_output):
     output = bnn.functions.binarise(**inputs)
     torch.testing.assert_close(output, expected_output)
+
+
+test_one_hot_max_cases = [
+    (
+        torch.Tensor([1, 2, 3, 4, 5, 6, 7, 8]).to(dtype=torch.int),
+        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1]).to(dtype=torch.int),
+    ),
+    (
+        torch.Tensor([[1, 2, 3, 4, 5, 6, 7, 8]]).to(dtype=torch.int),
+        torch.Tensor([[-1, -1, -1, -1, -1, -1, -1, 1]]).to(dtype=torch.int),
+    ),
+    (
+        -torch.Tensor([1, 2, 3, 4, 5, 6, 7, 8]).to(dtype=torch.int),
+        torch.Tensor([1, -1, -1, -1, -1, -1, -1, -1]).to(dtype=torch.int),
+    ),
+    (
+        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=torch.int),
+        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=torch.int),
+    ),
+    (
+        torch.Tensor([[1, 1], [-1, 1]]).to(dtype=torch.int),
+        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=torch.int),
+    ),
+]
+
+
+@pytest.mark.parametrize('inputs, expected_output', test_one_hot_max_cases)
+def test_one_hot_max(inputs, expected_output):
+    output = bnn.functions.one_hot_argmax(inputs)
+    torch.testing.assert_close(output, expected_output)

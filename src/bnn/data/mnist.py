@@ -65,6 +65,7 @@ class MNISTDataLoader(DataLoader):
         int_image = bnn.functions.binarise(image, threshold=self._binarise_thresh)
         int_image = int_image.reshape(-1, self.input_size)
         # convert label
-        one_hot_label = torch.nn.functional.one_hot(label, num_classes=self.output_size).to(bool)
+        one_hot_label = torch.nn.functional.one_hot(label, num_classes=self.output_size)
+        one_hot_label_rescaled = one_hot_label.to(torch.int) * 2 - 1
 
-        return LabelledDatum(input=int_image, target=one_hot_label)
+        return LabelledDatum(input=int_image, target=one_hot_label_rescaled)

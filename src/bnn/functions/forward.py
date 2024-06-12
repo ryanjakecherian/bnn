@@ -60,3 +60,18 @@ class LayerMedianBinarise(MatMulBinarise):
             out[i] = functions.binarise(x=x_, threshold=median)
 
         return out
+
+
+class MatMulMax(ForwardFunc):
+    def __call__(self, x: torch.Tensor, W: torch.Tensor) -> torch.Tensor:
+        integer = functions.int_matmul(x, W)
+        out_binary = self.binary_softmax(x=integer)
+        return out_binary
+
+    @abc.abstractmethod
+    def binary_softmax(self, x: torch.Tensor) -> torch.Tensor: ...
+
+
+class OneHot(MatMulMax):
+    def binary_softmax(self, x: torch.Tensor) -> torch.Tensor:
+        return functions.one_hot_argmax(x)

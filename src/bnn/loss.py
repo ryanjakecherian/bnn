@@ -22,7 +22,7 @@ class l1(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
         error = torch.abs(output - target)
-        loss = torch.sum(error)
+        loss = torch.sum(error) / len(error)
         return loss
 
     @staticmethod
@@ -34,7 +34,7 @@ class l2(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
         error = torch.square(output - target)
-        loss = torch.sqrt(torch.sum(error))
+        loss = torch.sqrt(torch.sum(error)) / len(error)
         return loss
 
     # TODO implement me

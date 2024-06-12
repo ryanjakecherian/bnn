@@ -5,6 +5,7 @@ __all__ = [
     'binarise',
     'ternarise',
     'int_matmul',
+    'one_hot_argmax',
 ]
 
 
@@ -42,3 +43,13 @@ def int_matmul(
     AB_float = torch.matmul(A.to(TORCH_FLOAT_TYPE), B.to(TORCH_FLOAT_TYPE))
     AB_int = torch.round(AB_float).to(torch.int)
     return AB_int
+
+
+def one_hot_argmax(x: torch.Tensor) -> torch.Tensor:
+    argmax = torch.argmax(x, dim=-1, keepdim=True)
+
+    # empty array
+    out = torch.full_like(x, fill_value=-1)
+    # add 1s at argmax
+    out.scatter_(dim=-1, index=argmax, value=1)
+    return out
