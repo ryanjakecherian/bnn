@@ -143,8 +143,10 @@ def test_epoch(
     total = DL._datapoints
 
     for batch_id, batch in enumerate(DL):
-        output = TBNN.forward_no_proj(batch.input)
-        output_argmax = torch.argmax(output, dim=-1)
+        output = TBNN.forward(batch.input)
+        output_no_proj = TBNN.forward_no_proj(batch.input)
+
+        output_argmax = torch.argmax(output_no_proj, dim=-1)
         target_argmax = torch.argmax(batch.target, dim=-1)
 
         epoch_loss += loss_func.forward(output=output, target=batch.target)
