@@ -1,7 +1,7 @@
 # Main Hydra configuration file.
 defaults:
   - network: TBNN
-  - data: target_net
+  - dataset: target_net
   - optimizer: ExpectationSGD
   - loss: l1
   # Pretty logging with hydra_colorlog

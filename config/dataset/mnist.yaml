@@ -1,0 +1,22 @@
+input_dim: 784
+output_dim: 10
+
+train_data_loader:
+  _target_: bnn.data.MNISTDataLoader
+  root: "~/tmp/"
+  download: True
+  train: True
+  batch_size: ${train.batch_size}
+  binarise_thresh: 0.5
+  shuffle: True
+  include_last_if_uneven: True
+
+test_data_loader:
+  _target_: bnn.data.MNISTDataLoader
+  root: "~/tmp/"
+  download: True
+  train: False
+  batch_size: ${train.batch_size}
+  binarise_thresh: 0.5
+  shuffle: True
+  include_last_if_uneven: True

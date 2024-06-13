@@ -222,8 +222,8 @@ def main(cfg: omegaconf.DictConfig):
     omegaconf.OmegaConf.resolve(cfg)
 
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
-    train_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.train_data_loader)
-    test_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.data.test_data_loader)
+    train_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.train_data_loader)
+    test_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.test_data_loader)
     loss_func: bnn.loss.LossFunction = hydra.utils.instantiate(cfg.loss)
     optim: torch.optim.Optimizer = hydra.utils.instantiate(
         config=cfg.optimizer,
