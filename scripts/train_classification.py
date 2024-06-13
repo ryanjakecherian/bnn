@@ -210,7 +210,7 @@ def train(
 
 def setup_wandb(cfg: omegaconf.DictConfig):
     wandb_config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-    wandb.init(project='train_network', config=wandb_config)
+    wandb.init(project='train_classifier', config=wandb_config)
 
     wandb.define_metric('train/epoch')
     wandb.define_metric('train/*', step_metric='train/epoch')
