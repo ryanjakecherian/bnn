@@ -25,6 +25,7 @@ class l1(LossFunction):
         error = torch.abs(output - target)
         loss = torch.sum(error)
 
+        # mean
         if error.ndim > 1:
             loss = loss / len(error)
 
@@ -41,6 +42,7 @@ class l2(LossFunction):
         error = torch.square(output - target)
         loss = torch.sqrt(torch.sum(error))
 
+        # mean
         if error.ndim > 1:
             loss = loss / len(error)
 
