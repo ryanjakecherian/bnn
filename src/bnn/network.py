@@ -122,6 +122,7 @@ class TernBinNetwork(torch.nn.Module):
 
         return
 
+    # HACK
     def forward_no_proj(self, x: torch.Tensor) -> torch.Tensor:
         last_layer = list(self.layers.keys())[-1]
 
