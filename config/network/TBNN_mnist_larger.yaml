@@ -1,0 +1,21 @@
+hidden_dims: [1024, 1024, 1024, 512, 512, 512]
+
+forward_func_default:
+  _target_: bnn.functions.forward.SignBinarise
+forward_func_last:
+  _target_: bnn.functions.forward.OneHot
+
+
+model:
+  _target_: bnn.network.TernBinNetwork
+  dims: ${sandwich_list:${dataset.input_dim},${network.hidden_dims},${dataset.output_dim}}
+  forward_func:
+    - ${network.forward_func_default}
+    - ${network.forward_func_default}
+    - ${network.forward_func_default}
+    - ${network.forward_func_default}
+    - ${network.forward_func_default}
+    - ${network.forward_func_default}
+    - ${network.forward_func_last}
+  backward_func:
+    _target_: bnn.functions.backward.SignTernarise
