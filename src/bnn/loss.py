@@ -5,6 +5,7 @@ import torch
 __all___ = [
     'LossFunction',
     'l1',
+    'l2',
 ]
 
 

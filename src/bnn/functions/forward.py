@@ -10,6 +10,7 @@ __all__ = [
     'SignBinarise',
     'LayerMeanBinarise',
     'LayerMedianBinarise',
+    'OneHot',
 ]
 
 
