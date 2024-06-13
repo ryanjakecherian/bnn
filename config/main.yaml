@@ -11,10 +11,10 @@ defaults:
   - _self_
 
 train:
-  epochs: 500
-  log_rate: 25
-  lr: 0.0005
-  batch_size: 1000
+  epochs: 10000
+  log_rate: 20
+  lr: 0.0000001
+  batch_size: 2048
   gpu: True
 
 hydra:

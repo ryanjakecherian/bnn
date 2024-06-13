@@ -32,17 +32,17 @@ class TernBinNetwork(torch.nn.Module):
 
         n_layers = len(dims) - 1
         # check forward/back func list length
-        if isinstance(forward_func, bnn.functions.ForwardFunc):
-            forward_func = [forward_func] * n_layers
-        else:
+        try:
             if len(forward_func) != n_layers:
                 raise ValueError(f'{len(forward_func)}s forward funcs but {len(dims)} layers')
+        except TypeError:
+            forward_func = [forward_func] * n_layers
 
-        if isinstance(backward_func, bnn.functions.BackwardFunc):
-            backward_func = [backward_func] * n_layers
-        else:
+        try:
             if len(backward_func) != n_layers:
                 raise ValueError(f'{len(backward_func)}s backward funcs but {n_layers} layers')
+        except TypeError:
+            backward_func = [backward_func] * n_layers
 
         # init layers
         layers_zip = zip(dims, dims[1:], forward_func, backward_func)

@@ -15,3 +15,6 @@ data_loader:
     forward_func:
       _target_: bnn.functions.forward.SignBinarise
     backward_func: null
+
+train_data_loader: ${data.data_loader}
+test_data_loader: ${data.data_loader}

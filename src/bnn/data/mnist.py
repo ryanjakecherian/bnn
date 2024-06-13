@@ -27,7 +27,7 @@ class MNISTDataLoader(DataLoader):
         download: bool,
         train: bool,
         batch_size: int,
-        binarise_thesh: float = 0.5,
+        binarise_thresh: float = 0.5,
         shuffle: bool = True,
         include_last_if_uneven: bool = False,
     ):
@@ -43,7 +43,7 @@ class MNISTDataLoader(DataLoader):
             batch_size=batch_size,
             shuffle=shuffle,
         )
-        self._binarise_thresh = binarise_thesh
+        self._binarise_thresh = binarise_thresh
 
         super().__init__(
             datapoints=len(dataset),
