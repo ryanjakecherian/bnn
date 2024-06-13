@@ -45,7 +45,6 @@ class l2(LossFunction):
 
         return loss
 
-    # TODO implement me
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return torch.sign(output - target)
