@@ -8,7 +8,7 @@ forward_func_last:
 
 model:
   _target_: bnn.network.TernBinNetwork
-  dims: ${sandwich_list:${data.input_dim},${network.hidden_dims},${data.output_dim}}
+  dims: ${sandwich_list:${dataset.input_dim},${network.hidden_dims},${dataset.output_dim}}
   forward_func:
     - ${network.forward_func_default}
     - ${network.forward_func_default}
