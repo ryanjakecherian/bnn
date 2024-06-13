@@ -12,6 +12,10 @@ omegaconf.OmegaConf.register_new_resolver(
     name='sandwich_list',
     resolver=bnn.config.sandwich_list,
 )
+omegaconf.OmegaConf.register_new_resolver(
+    name='pow',
+    resolver=bnn.config.pow,
+)
 
 
 def train_epoch(
