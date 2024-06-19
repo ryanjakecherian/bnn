@@ -1,3 +1,4 @@
+import copy
 import os
 import pathlib
 import pickle
@@ -11,10 +12,13 @@ __all__ = (
 
 
 def save_network(network: TernBinNetwork, filename: pathlib.Path):
+    filename = pathlib.Path(os.path.expanduser(filename))
     if os.path.exists(filename):
         raise FileExistsError(f'{filename} already exists!')
 
     _make_dir_if_doesnt_exist(filename.parent)
+
+    network = copy.deepcopy(network)
 
     with open(filename, 'wb') as f:
         pickle.dump(network.to('cpu'), f)
@@ -38,6 +42,6 @@ def _make_dir_if_doesnt_exist(dir: pathlib.Path):
             raise FileExistsError(f'{dir} exists and is a file!')
 
     else:
-        os.mkdir(dir)
+        dir.mkdir(parents=True)
 
     return

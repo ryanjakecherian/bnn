@@ -1,3 +1,5 @@
+import logging
+import os
 import pathlib
 
 import bnn
@@ -10,6 +12,8 @@ import torch
 import tqdm
 
 import wandb
+
+logger = logging.getLogger(__name__)
 
 omegaconf.OmegaConf.register_new_resolver(
     name='sandwich_list',
@@ -248,7 +252,8 @@ def main(cfg: omegaconf.DictConfig):
 
     run = setup_wandb(cfg=cfg)
     # convert to path
-    save_dir = pathlib.Path(cfg.train.save_dir) / run.name
+    save_dir = pathlib.Path(os.path.expanduser(cfg.train.save_dir)) / run.name
+    logger.info(f'save_dir: {save_dir}')
 
     if cfg.train.gpu is not None:
         if not torch.cuda.is_available():

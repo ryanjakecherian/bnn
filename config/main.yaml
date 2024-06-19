@@ -12,12 +12,12 @@ defaults:
   - _self_
 
 train:
-  epochs: 10000
-  log_rate: 20
+  epochs: 10
+  log_rate: 1
   log_lr: 0.0000001
   batch_size: 2048
   gpu: 0
-  checkpoint_rate: 500
+  checkpoint_rate: 1
   save_dir: ~/tmp/test/
   description: 'none'
 
