@@ -200,7 +200,7 @@ def train(
             )
 
         if checkpoint:
-            fname = save_dir / f'chkpt_{epoch:06d}.pckl'
+            fname = save_dir / f'chkpt_epoch_{epoch:06d}.pckl'
             bnn.save.save_network(network=TBNN, filename=fname)
 
         # NOTE early exit before recalculating so that it another loop is run and logged before exit!
