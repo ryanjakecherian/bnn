@@ -23,6 +23,10 @@ omegaconf.OmegaConf.register_new_resolver(
     name='pow',
     resolver=bnn.config.pow,
 )
+omegaconf.OmegaConf.register_new_resolver(
+    name='layer_list',
+    resolver=bnn.config.layer_list,
+)
 
 
 def train_epoch(

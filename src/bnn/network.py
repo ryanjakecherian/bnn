@@ -34,13 +34,19 @@ class TernBinNetwork(torch.nn.Module):
         # check forward/back func list length
         try:
             if len(forward_func) != n_layers:
-                raise ValueError(f'{len(forward_func)}s forward funcs but {len(dims)} layers')
+                if len(forward_func) == 2:
+                    forward_func = [forward_func[0]] * (n_layers - 2) + forward_func
+                else:
+                    raise ValueError(f'{len(forward_func)}s forward funcs but {len(dims)} layers')
         except TypeError:
             forward_func = [forward_func] * n_layers
 
         try:
             if len(backward_func) != n_layers:
-                raise ValueError(f'{len(backward_func)}s backward funcs but {n_layers} layers')
+                if len(backward_func) == 2:
+                    backward_func = [backward_func[0]] * (n_layers - 2) + backward_func
+                else:
+                    raise ValueError(f'{len(backward_func)}s backward funcs but {n_layers} layers')
         except TypeError:
             backward_func = [backward_func] * n_layers
 

@@ -11,10 +11,6 @@ model:
   dims: ${sandwich_list:${dataset.input_dim},${network.hidden_dims},${dataset.output_dim}}
   forward_func:
     - ${network.forward_func_default}
-    - ${network.forward_func_default}
-    - ${network.forward_func_default}
-    - ${network.forward_func_default}
-    - ${network.forward_func_default}
     - ${network.forward_func_last}
   backward_func:
     _target_: bnn.functions.backward.SignTernarise
