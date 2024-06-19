@@ -41,10 +41,8 @@ class LayerMeanBinarise(MatMulBinarise):
         # NOTE means over layer dimension - samples stay indepenent :)
         means = torch.mean(x.to(torch.float), dim=-1)
 
-        out = torch.empty_like(x)
-
-        for i, (x_, mean) in enumerate(zip(x, means)):
-            out[i] = functions.binarise(x=x_, threshold=mean)
+        out = torch.ones_like(x, dtype=torch.int)
+        out[x < means[..., None]] = -1
 
         return out
 
@@ -55,10 +53,8 @@ class LayerMedianBinarise(MatMulBinarise):
         medians_out = torch.median(x, dim=-1)
         medians = medians_out.values
 
-        out = torch.empty_like(x)
-
-        for i, (x_, median) in enumerate(zip(x, medians)):
-            out[i] = functions.binarise(x=x_, threshold=median)
+        out = torch.ones_like(x, dtype=torch.int)
+        out[x < medians[..., None]] = -1
 
         return out
 
@@ -66,13 +62,13 @@ class LayerMedianBinarise(MatMulBinarise):
 class MatMulMax(ForwardFunc):
     def __call__(self, x: torch.Tensor, W: torch.Tensor) -> torch.Tensor:
         integer = functions.int_matmul(x, W)
-        out_binary = self.binary_softmax(x=integer)
+        out_binary = self.binary_max(x=integer)
         return out_binary
 
     @abc.abstractmethod
-    def binary_softmax(self, x: torch.Tensor) -> torch.Tensor: ...
+    def binary_max(self, x: torch.Tensor) -> torch.Tensor: ...
 
 
 class OneHot(MatMulMax):
-    def binary_softmax(self, x: torch.Tensor) -> torch.Tensor:
+    def binary_max(self, x: torch.Tensor) -> torch.Tensor:
         return functions.one_hot_argmax(x)
