@@ -220,14 +220,14 @@ def train(
 
 def setup_wandb(cfg: omegaconf.DictConfig):
     wandb_config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-    wandb.init(project='train_classifier', config=wandb_config)
+    run = wandb.init(project='train_classifier', config=wandb_config)
 
     wandb.define_metric('train/epoch')
     wandb.define_metric('train/*', step_metric='train/epoch')
     wandb.define_metric('test/epoch')
     wandb.define_metric('test/*', step_metric='test/epoch')
 
-    return
+    return run
 
 
 @hydra.main(config_path='../config', config_name='main', version_base=None)
@@ -245,10 +245,10 @@ def main(cfg: omegaconf.DictConfig):
         params=network.parameters(),
     )
     network._initialise(W_mean=0, W_zero_prob=0.5)
-    # convert to path
-    save_dir = pathlib.Path(cfg.train.save_dir)
 
-    setup_wandb(cfg=cfg)
+    run = setup_wandb(cfg=cfg)
+    # convert to path
+    save_dir = pathlib.Path(cfg.train.save_dir) / run.name
 
     if cfg.train.gpu is not None:
         if not torch.cuda.is_available():

@@ -11,7 +11,7 @@ data_loader:
   W_zero_prob: 0.8
   target_network:
     _target_: bnn.network.TernBinNetwork
-    dims: ${sandwich_list:${dataset.input_dim},${data.hidden_dims},${dataset.output_dim}}
+    dims: ${sandwich_list:${dataset.input_dim},${dataset.hidden_dims},${dataset.output_dim}}
     forward_func:
       _target_: bnn.functions.forward.SignBinarise
     backward_func: null
