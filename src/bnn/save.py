@@ -12,7 +12,6 @@ __all__ = (
 
 
 def save_network(network: TernBinNetwork, filename: pathlib.Path):
-    filename = pathlib.Path(os.path.expanduser(filename))
     if os.path.exists(filename):
         raise FileExistsError(f'{filename} already exists!')
 
