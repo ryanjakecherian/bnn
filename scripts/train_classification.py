@@ -206,8 +206,8 @@ def train(
 
         if checkpoint:
             logger.info(f'({run_name}) - epoch {epoch}: checkpointing')
-            fname = save_dir / f'chkpt_epoch_{epoch:06d}.pckl'
-            bnn.save.save_network(network=TBNN, filename=fname)
+            fname = save_dir / f'chkpt_epoch_{epoch:06d}.npz'
+            bnn.save.save_network_compressed(network=TBNN, filename=fname)
 
         # NOTE early exit before recalculating so that it another loop is run and logged before exit!
         if early_exit:
@@ -256,6 +256,10 @@ def main(cfg: omegaconf.DictConfig):
     # convert to path
     save_dir = pathlib.Path(os.path.expanduser(cfg.train.save_dir)) / run.name
     logger.info(f'save_dir: {save_dir}')
+
+    # save schema
+    logger.info(f'({run.name}) - saving schema')
+    bnn.save.save_schema(network=network, filename=save_dir / 'schema')
 
     if cfg.train.gpu is not None:
         if not torch.cuda.is_available():

@@ -53,6 +53,8 @@ def save_schema(network: TernBinNetwork, filename: pathlib.Path):
     if os.path.exists(filename):
         raise FileExistsError(f'{filename} already exists!')
 
+    _make_dir_if_doesnt_exist(filename.parent)
+
     schema = bnn.compress.get_schema(network=network)
 
     with open(filename, 'wb') as f:
