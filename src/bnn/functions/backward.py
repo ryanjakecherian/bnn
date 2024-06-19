@@ -67,20 +67,15 @@ class LayerMeanStdTernarise(BackprojectTernarise):
         # NOTE done over layer dimension - samples stay indepenent :)
         stds, means = torch.std_mean(grad.to(torch.float), dim=-1)
 
-        out = torch.empty_like(grad)
+        out = torch.zeros_like(grad, dtype=torch.int)
 
-        for i, (grad_, std, mean) in enumerate(zip(grad, stds, means)):
-            # don't allow sign to change
-            threshold_lo = min(mean - std * self.half_range_stds, 0)
-            # NOTE threshold_hi is inclusive, ie ternarise(thresh_hi) = 1
-            # therefore, adding EPS ensures grad=zeros is stable under ternarisation
-            threshold_hi = max(mean + std * self.half_range_stds + EPS, 0)
+        # calculate thresholds
+        threshold_hi = torch.clamp_min(means + stds * self.half_range_stds, 0)
+        threshold_lo = torch.clamp_max(means - stds * self.half_range_stds, 0)
 
-            out[i] = functions.ternarise(
-                x=grad_,
-                threshold_lo=threshold_lo,
-                threshold_hi=threshold_hi,
-            )
+        # apply
+        out[grad > threshold_hi[..., None]] = 1
+        out[grad < threshold_lo[..., None]] = -1
 
         return out
 
@@ -109,19 +104,15 @@ class LayerQuantileTernarise(BackprojectTernarise):
                 q=self.lo_hi_quant,
                 dim=-1,
             )
+
         lo_quants = torch.clamp_max(lo_quants, max=0)
         hi_quants = torch.clamp_min(hi_quants, min=0)
 
-        out = torch.empty_like(grad)
+        out = torch.zeros_like(grad, dtype=torch.int)
 
-        for i, (grad_, lo_q, hi_q) in enumerate(zip(grad, lo_quants, hi_quants)):
-            out[i] = functions.ternarise(
-                x=grad_,
-                threshold_lo=lo_q,
-                # NOTE threshold_hi is inclusive, ie ternarise(thresh_hi) = 1
-                # therefore, adding EPS ensures grad=zeros is stable under ternarisation
-                threshold_hi=hi_q + EPS,
-            )
+        # apply
+        out[grad > hi_quants[..., None]] = 1
+        out[grad < lo_quants[..., None]] = -1
 
         return out
 
@@ -142,9 +133,7 @@ class LayerQuantileSymmetricTernarise(BackprojectTernarise):
             dim=-1,
         )
 
-        out = torch.zeros_like(grad)
-
-        out[(abs_grad - quants) > 0] = 1
-        out *= torch.sign(grad)
+        out = torch.sign(grad)
+        out[abs_grad < quants[..., None]] = 0
 
         return out
