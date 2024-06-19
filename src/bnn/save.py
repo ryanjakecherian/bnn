@@ -3,11 +3,15 @@ import os
 import pathlib
 import pickle
 
+import numpy as np
+
+import bnn.compress
 from bnn.network import TernBinNetwork
 
 __all__ = (
     'load_network',
     'save_network',
+    'save_network_compressed',
 )
 
 
@@ -29,6 +33,30 @@ def save_network(network: TernBinNetwork, filename: pathlib.Path):
         pickle.dump(network.to('cpu'), f)
 
     return
+
+
+def save_network_compressed(network: TernBinNetwork, filename: pathlib.Path):
+    if os.path.exists(filename):
+        raise FileExistsError(f'{filename} already exists!')
+
+    _make_dir_if_doesnt_exist(filename.parent)
+
+    bWs = bnn.compress.compress_network(network)
+
+    with open(filename, 'wb') as f:
+        np.savez_compressed(file=f, **bWs)
+
+    return
+
+
+def save_schema(network: TernBinNetwork, filename: pathlib.Path):
+    if os.path.exists(filename):
+        raise FileExistsError(f'{filename} already exists!')
+
+    schema = bnn.compress.get_schema(network=network)
+
+    with open(filename, 'wb') as f:
+        pickle.dump(schema, f)
 
 
 def load_network(filename: pathlib.Path):
