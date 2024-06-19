@@ -176,6 +176,7 @@ def train(
     train_epochs: int,
     checkpoint_rate: int,
     save_dir: pathlib.Path,
+    run_name: str,
 ):
     zero_loss_count = 0
     zero_loss_count_for_early_stop = 10
@@ -195,7 +196,7 @@ def train(
         )
 
         if log:
-            logger.info(f'epoch {epoch}: logging')
+            logger.info(f'({run_name}) - epoch {epoch}: logging')
             test_epoch(
                 TBNN=TBNN,
                 loss_func=loss_func,
@@ -204,7 +205,7 @@ def train(
             )
 
         if checkpoint:
-            logger.info(f'epoch {epoch}: checkpointing')
+            logger.info(f'({run_name}) - epoch {epoch}: checkpointing')
             fname = save_dir / f'chkpt_epoch_{epoch:06d}.pckl'
             bnn.save.save_network(network=TBNN, filename=fname)
 
@@ -274,6 +275,7 @@ def main(cfg: omegaconf.DictConfig):
         checkpoint_rate=cfg.train.checkpoint_rate,
         train_epochs=cfg.train.epochs,
         save_dir=save_dir,
+        run_name=run.name,
     )
 
 

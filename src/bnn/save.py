@@ -17,7 +17,13 @@ def save_network(network: TernBinNetwork, filename: pathlib.Path):
 
     _make_dir_if_doesnt_exist(filename.parent)
 
+    # reset network
     network = copy.deepcopy(network)
+    network.zero_grad()
+    for key in network.input.keys():
+        network.input[key] = None
+    for key in network.grad.keys():
+        network.grad[key] = None
 
     with open(filename, 'wb') as f:
         pickle.dump(network.to('cpu'), f)
