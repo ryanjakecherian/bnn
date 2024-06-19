@@ -9,7 +9,6 @@ import bnn.save
 import hydra
 import omegaconf
 import torch
-import tqdm
 
 import wandb
 
@@ -182,7 +181,7 @@ def train(
     zero_loss_count_for_early_stop = 10
     early_exit = False
 
-    for epoch in tqdm.trange(train_epochs):
+    for epoch in range(train_epochs):
         log = early_exit or (epoch % log_rate) == 0 or (epoch + 1 == train_epochs)
         checkpoint = early_exit or (epoch % checkpoint_rate) == 0 or (epoch + 1 == train_epochs)
 
@@ -196,6 +195,7 @@ def train(
         )
 
         if log:
+            logger.info(f'epoch {epoch}: logging')
             test_epoch(
                 TBNN=TBNN,
                 loss_func=loss_func,
@@ -204,6 +204,7 @@ def train(
             )
 
         if checkpoint:
+            logger.info(f'epoch {epoch}: checkpointing')
             fname = save_dir / f'chkpt_epoch_{epoch:06d}.pckl'
             bnn.save.save_network(network=TBNN, filename=fname)
 
