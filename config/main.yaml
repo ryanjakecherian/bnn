@@ -17,6 +17,8 @@ train:
   log_lr: 0.0000001
   batch_size: 2048
   gpu: 0
+  checkpoint_rate: 500
+  save_dir: ~/tmp/test/
   description: 'none'
 
 hydra:

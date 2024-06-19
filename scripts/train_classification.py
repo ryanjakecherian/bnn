@@ -1,6 +1,9 @@
+import pathlib
+
 import bnn
 import bnn.config
 import bnn.metrics
+import bnn.save
 import hydra
 import omegaconf
 import torch
@@ -168,6 +171,8 @@ def train(
     optimizer: torch.optim.Optimizer,
     log_rate: int,
     train_epochs: int,
+    checkpoint_rate: int,
+    save_dir: pathlib.Path,
 ):
     zero_loss_count = 0
     zero_loss_count_for_early_stop = 10
@@ -175,6 +180,7 @@ def train(
 
     for epoch in tqdm.trange(train_epochs):
         log = early_exit or (epoch % log_rate) == 0 or (epoch + 1 == train_epochs)
+        checkpoint = early_exit or (epoch % checkpoint_rate) == 0 or (epoch + 1 == train_epochs)
 
         epoch_loss = train_epoch(
             TBNN=TBNN,
@@ -192,6 +198,10 @@ def train(
                 DL=test_DL,
                 metrics={'test/epoch': epoch},
             )
+
+        if checkpoint:
+            fname = save_dir / f'chkpt_{epoch:06d}.pckl'
+            bnn.save.save_network(network=TBNN, filename=fname)
 
         # NOTE early exit before recalculating so that it another loop is run and logged before exit!
         if early_exit:
@@ -225,6 +235,7 @@ def main(cfg: omegaconf.DictConfig):
     # resolve config
     omegaconf.OmegaConf.resolve(cfg)
 
+    # instantiate
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
     train_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.train_data_loader)
     test_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.test_data_loader)
@@ -234,6 +245,8 @@ def main(cfg: omegaconf.DictConfig):
         params=network.parameters(),
     )
     network._initialise(W_mean=0, W_zero_prob=0.5)
+    # convert to path
+    save_dir = pathlib.Path(cfg.train.save_dir)
 
     setup_wandb(cfg=cfg)
 
@@ -252,7 +265,9 @@ def main(cfg: omegaconf.DictConfig):
         test_DL=test_data_loader,
         optimizer=optim,
         log_rate=cfg.train.log_rate,
+        checkpoint_rate=cfg.train.checkpoint_rate,
         train_epochs=cfg.train.epochs,
+        save_dir=save_dir,
     )
 
 
