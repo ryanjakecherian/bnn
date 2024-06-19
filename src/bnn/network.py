@@ -35,7 +35,8 @@ class TernBinNetwork(torch.nn.Module):
         try:
             if len(forward_func) != n_layers:
                 if len(forward_func) == 2:
-                    forward_func = [forward_func[0]] * (n_layers - 2) + forward_func
+                    # HACK needs to be this way otherwise OmegaConf complains
+                    forward_func = [forward_func[0]] * (n_layers - 1) + [forward_func[-1]]
                 else:
                     raise ValueError(f'{len(forward_func)}s forward funcs but {len(dims)} layers')
         except TypeError:
@@ -44,7 +45,7 @@ class TernBinNetwork(torch.nn.Module):
         try:
             if len(backward_func) != n_layers:
                 if len(backward_func) == 2:
-                    backward_func = [backward_func[0]] * (n_layers - 2) + backward_func
+                    backward_func = [backward_func[0]] * (n_layers - 1) + [backward_func[-1]]
                 else:
                     raise ValueError(f'{len(backward_func)}s backward funcs but {n_layers} layers')
         except TypeError:
