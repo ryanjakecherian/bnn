@@ -10,6 +10,7 @@ __all__ = [
     'SignTernarise',
     'LayerMeanStdTernarise',
     'LayerQuantileTernarise',
+    'STETernarise',
 ]
 
 EPS = 0.01
