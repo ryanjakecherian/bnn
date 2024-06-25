@@ -151,7 +151,7 @@ class STETernarise(BackprojectTernarise):
 
     def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor):
         output = functions.int_matmul(input, W)
-        output_ste = torch.abs(output) >= self.zero_grad_mag_thresh
+        output_ste = torch.abs(output) <= self.zero_grad_mag_thresh
         grad_ste = grad * output_ste
 
         out_grad = functions.int_matmul(grad_ste, W.T)
