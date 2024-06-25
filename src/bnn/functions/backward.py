@@ -41,12 +41,15 @@ class BackprojectTernarise(BackwardFunc):
 
         W_grad_int = W_grad.to(torch.int)
 
-        # TODO - make this configurable?
-        grad = functions.int_matmul(grad, W.T)
-        tern_grad = self.ternarise(grad)
-        tern_grad_int = tern_grad.to(torch.int)
+        out_grad = self.gradient(W=W, input=input, grad=grad)
 
-        return W_grad_int, tern_grad_int
+        out_tern_grad = self.ternarise(out_grad)
+        out_tern_grad_int = out_tern_grad.to(torch.int)
+
+        return W_grad_int, out_tern_grad_int
+
+    def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor):
+        return functions.int_matmul(grad, W.T)
 
     @abc.abstractmethod
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor: ...
@@ -137,3 +140,22 @@ class LayerQuantileSymmetricTernarise(BackprojectTernarise):
         out[abs_grad < quants[..., None]] = 0
 
         return out
+
+
+class STETernarise(BackprojectTernarise):
+    zero_grad_mag_thresh: int
+
+    def __init__(self, zero_grad_mag_thresh):
+        self.zero_grad_mag_thresh = zero_grad_mag_thresh
+
+    def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor):
+        output = functions.int_matmul(input, W)
+        output_ste = torch.abs(output) >= self.zero_grad_mag_thresh
+        grad_ste = grad * output_ste
+
+        out_grad = functions.int_matmul(grad_ste, W.T)
+
+        return out_grad
+
+    def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        return torch.sign(grad)
