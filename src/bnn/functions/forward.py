@@ -72,3 +72,23 @@ class MatMulMax(ForwardFunc):
 class OneHot(MatMulMax):
     def binary_max(self, x: torch.Tensor) -> torch.Tensor:
         return functions.one_hot_argmax(x)
+
+
+class BitCountMax(MatMulMax):
+    out_dims: int
+    extra_dims: int
+
+    def __init__(self, out_dims: int, extra_dims: int):
+        self.out_dims = out_dims
+        self.extra_dims = extra_dims
+
+    def binary_max(self, x: torch.Tensor) -> torch.Tensor:
+        # reshape and binarise
+        reshaped = x.reshape(-1, self.extra_dims, self.out_dims)
+        binary_reshaped = functions.binarise(reshaped)
+
+        # count bits and argmax
+        bitcounts = torch.sum(binary_reshaped, dim=-2)
+        one_hot = functions.one_hot_argmax(bitcounts)
+
+        return one_hot

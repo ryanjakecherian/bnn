@@ -33,6 +33,8 @@ class BackprojectTernarise(BackwardFunc):
         input: torch.Tensor,
         W: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        grad = self.reshape_grad(grad)
+
         # FIXME check if long_int -> int conversion is safe!
         W_grad = torch.einsum(
             '...j,...k->jk',
@@ -49,7 +51,10 @@ class BackprojectTernarise(BackwardFunc):
 
         return W_grad_int, out_tern_grad_int
 
-    def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor):
+    def reshape_grad(self, grad: torch.Tensor) -> torch.Tensor:
+        return grad
+
+    def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor) -> torch.Tensor:
         return functions.int_matmul(grad, W.T)
 
     @abc.abstractmethod
@@ -160,3 +165,13 @@ class STETernarise(BackprojectTernarise):
 
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
         return torch.sign(grad)
+
+
+class BackwardBitCountMax(SignTernarise):
+    extra_dims: int
+
+    def __init__(self, extra_dims: int):
+        self.extra_dims = extra_dims
+
+    def reshape_grad(self, grad: torch.Tensor):
+        return torch.concatenate([grad] * self.extra_dims, dim=-1)
