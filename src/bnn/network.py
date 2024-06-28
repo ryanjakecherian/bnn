@@ -158,6 +158,16 @@ class TernBinNetwork(torch.nn.Module):
 
         return grad
 
+    def backward_actual(self, grad: torch.Tensor) -> torch.Tensor:
+        """Propagate gradients back through network and output grad wrt input."""
+        for layer_name, layer in reversed(self.layers.items()):
+            layer: bnn.layer.TernBinLayer
+
+            grad = layer.backward_actual(grad, self.input[layer_name])
+            self.grad[layer_name].data = grad
+
+        return grad
+
 
 def network_params_al_ternary(Net: torch.nn.Module) -> bool:
     for parameter in Net.parameters():

@@ -27,12 +27,18 @@ class BackwardFunc(abc.ABC):
 
 
 class BackprojectTernarise(BackwardFunc):
+    hidden_dim: int
+    sparsity: float
+
     def __call__(
         self,
         grad: torch.Tensor,
         input: torch.Tensor,
         W: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        self.hidden_dim = W.shape[-1]
+        self.sparsity = torch.mean((W == 0).to(torch.float))
+
         grad = self.reshape_grad(grad)
 
         # FIXME check if long_int -> int conversion is safe!
@@ -64,6 +70,18 @@ class BackprojectTernarise(BackwardFunc):
 class SignTernarise(BackprojectTernarise):
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
         return functions.ternarise(grad, threshold_lo=0, threshold_hi=1)
+
+
+class StochasticTernarise(BackprojectTernarise):
+    def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        EPS = 1e-8
+        sign = torch.sign(grad)
+        scaled = torch.abs(grad) / (self.hidden_dim * (1 - self.sparsity + EPS))
+
+        scaled_clipped = torch.clamp_max(scaled, 1.0)
+        out_grad = (torch.bernoulli(scaled_clipped) * sign).to(torch.int)
+
+        return out_grad
 
 
 class LayerMeanStdTernarise(BackprojectTernarise):
@@ -175,3 +193,9 @@ class BackwardBitCountMax(SignTernarise):
 
     def reshape_grad(self, grad: torch.Tensor):
         return torch.concatenate([grad] * self.extra_dims, dim=-1)
+
+
+# HACK this is far from the "ACTUAL" gradient as it assumed sign == identity.
+class ActualGradient(BackprojectTernarise):
+    def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
+        return grad.to(torch.int)

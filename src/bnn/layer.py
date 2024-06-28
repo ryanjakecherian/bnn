@@ -13,6 +13,7 @@ class TernBinLayer(torch.nn.Module):
     output_dim: int
     forward_func: bnn.functions.ForwardFunc
     backward_func: bnn.functions.BackwardFunc
+    backward_actual_func: bnn.functions.BackwardFunc = bnn.functions.backward.ActualGradient()
 
     W: torch.nn.Parameter
 
@@ -79,6 +80,14 @@ class TernBinLayer(torch.nn.Module):
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
         W_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W)
+
+        self.W.grad = W_grad
+
+        return out_grad
+
+    def backward_actual(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
+        """Backproject gradient signal and update W_grad."""
+        W_grad, out_grad = self.backward_actual_func(grad=grad, input=activation, W=self.W)
 
         self.W.grad = W_grad
 
