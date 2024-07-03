@@ -40,8 +40,9 @@ def train_epoch(
     num_correct = 0
 
     for batch_id, batch in enumerate(DL):
-        # number of dps seen...
-        datapoints += len(batch.input)
+        # update number of dps seen...
+        batch_datapoints = len(batch.input)
+        datapoints += batch_datapoints
 
         # forward pass and loss
         output = TBNN.forward(batch.input)
@@ -52,11 +53,11 @@ def train_epoch(
         TBNN.backward(grad)
 
         # optimizer step
-        batch_proportion_flipped = optimizer.step()
+        batch_proportion_flipped, all_num_flips, all_num_parmeters = optimizer.step()
         epoch_proportion_flipped += batch_proportion_flipped
 
         # sum loss
-        epoch_loss += loss
+        epoch_loss += (loss - epoch_loss) * batch_datapoints / datapoints
 
         if log:
             # acc
@@ -71,7 +72,7 @@ def train_epoch(
         metrics['train/accuracy'] = num_correct / datapoints
 
         # train health
-        metrics['train/mean_loss'] = epoch_loss / num_batches
+        metrics['train/mean_loss'] = epoch_loss
         metrics['train/mean_proportion_flipped'] = epoch_proportion_flipped / num_batches
 
         total_w_g = 0
@@ -145,20 +146,25 @@ def test_epoch(
 ) -> None:
     epoch_loss = 0
     num_correct = 0
-    total = DL._datapoints
+    datapoints = 0
 
     for batch_id, batch in enumerate(DL):
+        # update number of dps seen...
+        batch_datapoints = len(batch.input)
+        datapoints += batch_datapoints
+
+        # pass through
         output = TBNN.forward(batch.input)
         output_argmax = torch.argmax(output, dim=-1)
         target_argmax = torch.argmax(batch.target, dim=-1)
 
-        epoch_loss += loss_func.forward(output=output, target=batch.target)
         num_correct += torch.sum(target_argmax == output_argmax)
 
-    num_batches = batch_id + 1
+        batch_loss = loss_func.forward(output=output, target=batch.target)
+        epoch_loss += (batch_loss - epoch_loss) * batch_datapoints / datapoints
 
-    metrics['test/accuracy'] = num_correct / total
-    metrics['test/loss'] = epoch_loss / num_batches
+    metrics['test/accuracy'] = num_correct / datapoints
+    metrics['test/loss'] = epoch_loss
 
     # log
     wandb.log(metrics)

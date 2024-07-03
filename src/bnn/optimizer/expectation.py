@@ -17,10 +17,10 @@ class ExpectationSGD(torch.optim.Optimizer):
     def __setstate__(self, state):
         super().__setstate__(state)
 
-    def step(self) -> float:
+    def step(self) -> tuple[float, list[int], list[int]]:
         # for metrics
-        total_flips = 0
-        total_parameters = 0
+        all_num_flips = []
+        all_num_parameters = []
 
         for group in self.param_groups:
             lr = group['lr']
@@ -33,13 +33,13 @@ class ExpectationSGD(torch.optim.Optimizer):
                 num_flips = _expectation_sgd(param=param, lr=lr)
                 num_parameters = torch.numel(param.data)
 
-                total_flips += num_flips
-                total_parameters += num_parameters
+                all_num_flips.append(num_flips)
+                all_num_parameters.append(num_parameters)
 
-        # calc number of flips
-        proportion_flipped = total_flips / total_parameters
+        # total prop flips
+        prop_flipped = sum(all_num_flips) / sum(all_num_parameters)
 
-        return proportion_flipped
+        return prop_flipped, all_num_flips, all_num_parameters
 
 
 def _expectation_sgd(

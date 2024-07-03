@@ -24,6 +24,14 @@ def calc_desired_var(
     return 1 * bit_shift_var / dim
 
 
+def generate_random_binary_tensor(
+    shape: list[int],
+    mean: float,
+) -> torch.Tensor:
+    random = (torch.rand(shape) > 0.5 + mean / 2).to(int)
+    return random
+
+
 def generate_random_ternary_tensor(
     shape: list[int],
     desired_var: float,
