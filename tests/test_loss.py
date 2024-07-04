@@ -1,4 +1,5 @@
 import bnn.loss
+import bnn.type
 import pytest
 import torch
 
