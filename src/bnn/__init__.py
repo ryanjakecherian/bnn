@@ -10,6 +10,7 @@ __all__ = [
     'data',
     'metrics',
     'save',
+    'scheduler',
 ]
 
-from . import data, functions, layer, loss, metrics, network, optimizer, random
+from . import data, functions, layer, loss, metrics, network, optimizer, random, scheduler
