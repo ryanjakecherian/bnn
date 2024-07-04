@@ -178,6 +178,7 @@ def train(
     train_DL: bnn.data.DataLoader,
     test_DL: bnn.data.DataLoader,
     optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None,
     log_rate: int,
     train_epochs: int,
     checkpoint_rate: int,
@@ -227,6 +228,13 @@ def train(
         else:
             zero_loss_count = 0
 
+        # step scheduler
+        if scheduler is not None:
+            scheduler.step()
+            if log:
+                logger.info(f'LR according to sched: {scheduler.get_last_lr()}')
+                logger.info(f"LR according to optim: {[pg['lr'] for pg in optimizer.param_groups]}")
+
     return
 
 
@@ -260,6 +268,12 @@ def main(cfg: omegaconf.DictConfig):
         config=cfg.optimizer,
         params=network.parameters(),
     )
+    sched: torch.optim.lr_scheduler.LRScheduler = hydra.utils.instantiate(
+        config=cfg.scheduler,
+        optimizer=optim,
+    )
+
+    # initialise net
     network._initialise(W_mean=0, W_zero_prob=0.5)
 
     run = setup_wandb(cfg=cfg)
@@ -285,6 +299,7 @@ def main(cfg: omegaconf.DictConfig):
         train_DL=train_data_loader,
         test_DL=test_data_loader,
         optimizer=optim,
+        scheduler=sched,
         log_rate=cfg.train.log_rate,
         checkpoint_rate=cfg.train.checkpoint_rate,
         train_epochs=cfg.train.epochs,

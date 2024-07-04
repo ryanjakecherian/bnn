@@ -4,6 +4,7 @@ defaults:
   - dataset: target_net
   - optimizer: ExpectationSGD
   - loss: l1
+  - scheduler: noop
   # Pretty logging with hydra_colorlog
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
@@ -14,7 +15,7 @@ defaults:
 train:
   epochs: 10
   log_rate: 1
-  log_lr: 0.0000001
+  log_lr: -5
   batch_size: 2048
   gpu: 0
   checkpoint_rate: 1
