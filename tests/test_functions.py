@@ -1,4 +1,5 @@
 import bnn.functions
+import bnn.type
 import pytest
 import torch
 
@@ -43,26 +44,26 @@ test_binarise_cases = [
     # sign(x)
     (
         {
-            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=torch.int),
+            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=bnn.type.INTEGER),
             'threshold': 0,
         },
-        torch.Tensor([-1, -1, -1, -1, 1, 1, 1, 1, 1]).to(dtype=torch.int),
+        torch.Tensor([-1, -1, -1, -1, 1, 1, 1, 1, 1]).to(dtype=bnn.type.INTEGER),
     ),
     # sign(x+1)
     (
         {
-            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=torch.int),
+            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=bnn.type.INTEGER),
             'threshold': -1,
         },
-        torch.Tensor([-1, -1, -1, 1, 1, 1, 1, 1, 1]).to(dtype=torch.int),
+        torch.Tensor([-1, -1, -1, 1, 1, 1, 1, 1, 1]).to(dtype=bnn.type.INTEGER),
     ),
     # sign(x-3)
     (
         {
-            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=torch.int),
+            'x': torch.Tensor([-4, -3, -2, -1, 0, 1, 2, 3, 4]).to(dtype=bnn.type.INTEGER),
             'threshold': 3,
         },
-        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1, 1]).to(torch.int),
+        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1, 1]).to(bnn.type.INTEGER),
     ),
 ]
 
@@ -75,24 +76,24 @@ def test_binarise(inputs, expected_output):
 
 test_one_hot_max_cases = [
     (
-        torch.Tensor([1, 2, 3, 4, 5, 6, 7, 8]).to(dtype=torch.int),
-        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1]).to(dtype=torch.int),
+        torch.Tensor([1, 2, 3, 4, 5, 6, 7, 8]).to(dtype=bnn.type.INTEGER),
+        torch.Tensor([-1, -1, -1, -1, -1, -1, -1, 1]).to(dtype=bnn.type.INTEGER),
     ),
     (
-        torch.Tensor([[1, 2, 3, 4, 5, 6, 7, 8]]).to(dtype=torch.int),
-        torch.Tensor([[-1, -1, -1, -1, -1, -1, -1, 1]]).to(dtype=torch.int),
+        torch.Tensor([[1, 2, 3, 4, 5, 6, 7, 8]]).to(dtype=bnn.type.INTEGER),
+        torch.Tensor([[-1, -1, -1, -1, -1, -1, -1, 1]]).to(dtype=bnn.type.INTEGER),
     ),
     (
-        -torch.Tensor([1, 2, 3, 4, 5, 6, 7, 8]).to(dtype=torch.int),
-        torch.Tensor([1, -1, -1, -1, -1, -1, -1, -1]).to(dtype=torch.int),
+        -torch.Tensor([1, 2, 3, 4, 5, 6, 7, 8]).to(dtype=bnn.type.INTEGER),
+        torch.Tensor([1, -1, -1, -1, -1, -1, -1, -1]).to(dtype=bnn.type.INTEGER),
     ),
     (
-        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=torch.int),
-        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=torch.int),
+        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=bnn.type.INTEGER),
+        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=bnn.type.INTEGER),
     ),
     (
-        torch.Tensor([[1, 1], [-1, 1]]).to(dtype=torch.int),
-        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=torch.int),
+        torch.Tensor([[1, 1], [-1, 1]]).to(dtype=bnn.type.INTEGER),
+        torch.Tensor([[1, -1], [-1, 1]]).to(dtype=bnn.type.INTEGER),
     ),
 ]
 

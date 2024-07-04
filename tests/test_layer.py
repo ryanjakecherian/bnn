@@ -1,5 +1,6 @@
 import bnn.functions
 import bnn.layer
+import bnn.type
 import pytest
 import torch
 
@@ -24,10 +25,10 @@ def get_layer_with_W():
 
 
 test_get_layer_with_W_cases = [
-    torch.ones(100, 100, dtype=torch.int),
-    torch.ones(200, 100, dtype=torch.int),
-    torch.zeros(100, 200, dtype=torch.int),
-    (torch.rand(100, 200) * 10).to(torch.int),
+    torch.ones(100, 100, dtype=bnn.type.INTEGER),
+    torch.ones(200, 100, dtype=bnn.type.INTEGER),
+    torch.zeros(100, 200, dtype=bnn.type.INTEGER),
+    (torch.rand(100, 200) * 10).to(bnn.type.INTEGER),
 ]
 
 
@@ -42,39 +43,39 @@ def test_get_layer_with_W(W: torch.Tensor, get_layer_with_W):
 test_forward_cases = [
     # all ones, square
     (
-        torch.ones(100, 100, dtype=torch.int),
-        torch.ones(100, dtype=torch.int),
-        torch.ones(100, dtype=torch.int),
+        torch.ones(100, 100, dtype=bnn.type.INTEGER),
+        torch.ones(100, dtype=bnn.type.INTEGER),
+        torch.ones(100, dtype=bnn.type.INTEGER),
     ),
     # all ones, rectangle
     (
-        torch.ones(200, 100, dtype=torch.int),
-        torch.ones(200, dtype=torch.int),
-        torch.ones(100, dtype=torch.int),
+        torch.ones(200, 100, dtype=bnn.type.INTEGER),
+        torch.ones(200, dtype=bnn.type.INTEGER),
+        torch.ones(100, dtype=bnn.type.INTEGER),
     ),
     # zero weights * ones
     (
-        torch.zeros(200, 100, dtype=torch.int),
-        torch.ones(200, dtype=torch.int),
-        torch.ones(100, dtype=torch.int),
+        torch.zeros(200, 100, dtype=bnn.type.INTEGER),
+        torch.ones(200, dtype=bnn.type.INTEGER),
+        torch.ones(100, dtype=bnn.type.INTEGER),
     ),
     # multiple samples, all ones
     (
-        torch.ones(200, 100, dtype=torch.int),
-        torch.ones(10, 200, dtype=torch.int),
-        torch.ones(10, 100, dtype=torch.int),
+        torch.ones(200, 100, dtype=bnn.type.INTEGER),
+        torch.ones(10, 200, dtype=bnn.type.INTEGER),
+        torch.ones(10, 100, dtype=bnn.type.INTEGER),
     ),
     # random example
     (
-        torch.Tensor([[1, 0, -1]] * 5).to(torch.int).T,
-        torch.Tensor([1, -1, 1]).to(torch.int),
-        torch.ones(5, dtype=torch.int),
+        torch.Tensor([[1, 0, -1]] * 5).to(bnn.type.INTEGER).T,
+        torch.Tensor([1, -1, 1]).to(bnn.type.INTEGER),
+        torch.ones(5, dtype=bnn.type.INTEGER),
     ),
     # multiple different samples, different outputs in each node
     (
-        torch.Tensor([[1, 1], [1, -1], [-1, 1], [-1, -1]]).to(torch.int).T,
-        torch.Tensor([[1, 1], [-1, -1]]).to(torch.int),
-        torch.Tensor([[1, 1, 1, -1], [-1, 1, 1, 1]]).to(torch.int),
+        torch.Tensor([[1, 1], [1, -1], [-1, 1], [-1, -1]]).to(bnn.type.INTEGER).T,
+        torch.Tensor([[1, 1], [-1, -1]]).to(bnn.type.INTEGER),
+        torch.Tensor([[1, 1, 1, -1], [-1, 1, 1, 1]]).to(bnn.type.INTEGER),
     ),
 ]
 
@@ -92,132 +93,132 @@ test_backward_cases = [
     # W, g=0, a=rand
     (
         # W
-        torch.zeros(2, 3, dtype=torch.int),
+        torch.zeros(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        torch.zeros(3, dtype=torch.int),
+        torch.zeros(3, dtype=bnn.type.INTEGER),
         # activation
-        torch.Tensor([-1, 1]).to(torch.int),
+        torch.Tensor([-1, 1]).to(bnn.type.INTEGER),
         # expected_out_grad
-        torch.zeros(2, dtype=torch.int),
+        torch.zeros(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        torch.zeros(2, 3, dtype=torch.int),
+        torch.zeros(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=0, g=1, a=1
     (
         # W
-        torch.zeros(2, 3, dtype=torch.int),
+        torch.zeros(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        torch.ones(3, dtype=torch.int),
+        torch.ones(3, dtype=bnn.type.INTEGER),
         # activation
-        torch.ones(2, dtype=torch.int),
+        torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_out_grad
-        torch.zeros(2, dtype=torch.int),
+        torch.zeros(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        torch.ones(2, 3, dtype=torch.int),
+        torch.ones(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=0, g=-1, a=1
     (
         # W
-        torch.zeros(2, 3, dtype=torch.int),
+        torch.zeros(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        -torch.ones(3, dtype=torch.int),
+        -torch.ones(3, dtype=bnn.type.INTEGER),
         # activation
-        torch.ones(2, dtype=torch.int),
+        torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_out_grad
-        torch.zeros(2, dtype=torch.int),
+        torch.zeros(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        -torch.ones(2, 3, dtype=torch.int),
+        -torch.ones(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=0, g=-1, a=-1
     (
         # W
-        torch.zeros(2, 3, dtype=torch.int),
+        torch.zeros(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        -torch.ones(3, dtype=torch.int),
+        -torch.ones(3, dtype=bnn.type.INTEGER),
         # activation
-        -torch.ones(2, dtype=torch.int),
+        -torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_out_grad
-        torch.zeros(2, dtype=torch.int),
+        torch.zeros(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        torch.ones(2, 3, dtype=torch.int),
+        torch.ones(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=0, g=1, a=-1
     (
         # W
-        torch.zeros(2, 3, dtype=torch.int),
+        torch.zeros(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        torch.ones(3, dtype=torch.int),
+        torch.ones(3, dtype=bnn.type.INTEGER),
         # activation
-        -torch.ones(2, dtype=torch.int),
+        -torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_out_grad
-        torch.zeros(2, dtype=torch.int),
+        torch.zeros(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        -torch.ones(2, 3, dtype=torch.int),
+        -torch.ones(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=1, g=1, a=1
     (
         # W
-        torch.ones(2, 3, dtype=torch.int),
+        torch.ones(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        torch.ones(3, dtype=torch.int),
+        torch.ones(3, dtype=bnn.type.INTEGER),
         # activation
-        torch.ones(2, dtype=torch.int),
+        torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_out_grad
-        torch.ones(2, dtype=torch.int),
+        torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        torch.ones(2, 3, dtype=torch.int),
+        torch.ones(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=1, g=-1, a=1
     (
         # W
-        torch.ones(2, 3, dtype=torch.int),
+        torch.ones(2, 3, dtype=bnn.type.INTEGER),
         # grad
-        -torch.ones(3, dtype=torch.int),
+        -torch.ones(3, dtype=bnn.type.INTEGER),
         # activation
-        torch.ones(2, dtype=torch.int),
+        torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_out_grad
-        -torch.ones(2, dtype=torch.int),
+        -torch.ones(2, dtype=bnn.type.INTEGER),
         # expected_W_grad
-        -torch.ones(2, 3, dtype=torch.int),
+        -torch.ones(2, 3, dtype=bnn.type.INTEGER),
     ),
     # W=all, g=all, a=all
     (
         # W
-        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(torch.int),
+        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(bnn.type.INTEGER),
         # grad
-        torch.Tensor([-1, 0, 1]).to(torch.int),
+        torch.Tensor([-1, 0, 1]).to(bnn.type.INTEGER),
         # activation
-        torch.Tensor([1, -1]).to(torch.int),
+        torch.Tensor([1, -1]).to(bnn.type.INTEGER),
         # expected_out_grad
-        torch.Tensor([-1, 1]).to(torch.int),
+        torch.Tensor([-1, 1]).to(bnn.type.INTEGER),
         # expected_W_grad
-        torch.Tensor([[-1, 0, 1], [1, 0, -1]]).to(torch.int),
+        torch.Tensor([[-1, 0, 1], [1, 0, -1]]).to(bnn.type.INTEGER),
     ),
     # multi-sample...!
     (
         # W
-        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(torch.int),
+        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(bnn.type.INTEGER),
         # grad
-        torch.Tensor([[-1, 0, 1]] * 4).to(torch.int),
+        torch.Tensor([[-1, 0, 1]] * 4).to(bnn.type.INTEGER),
         # activation
-        torch.Tensor([[1, 1], [1, -1], [-1, -1], [-1, 1]]).to(torch.int),
+        torch.Tensor([[1, 1], [1, -1], [-1, -1], [-1, 1]]).to(bnn.type.INTEGER),
         # expected_out_grad
-        torch.Tensor([[-1, 1]] * 4).to(torch.int),
+        torch.Tensor([[-1, 1]] * 4).to(bnn.type.INTEGER),
         # expected_W_grad
-        torch.Tensor([[0, 0, 0], [0, 0, 0]]).to(torch.int),
+        torch.Tensor([[0, 0, 0], [0, 0, 0]]).to(bnn.type.INTEGER),
     ),
     # multi-sample...!
     (
         # W
-        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(torch.int),
+        torch.Tensor([[1, 0, -1], [-1, 0, 1]]).to(bnn.type.INTEGER),
         # grad
-        torch.Tensor([[-1, 1, 1], [1, 0, -1], [1, 1, 1], [-1, -1, -1]]).to(torch.int),
+        torch.Tensor([[-1, 1, 1], [1, 0, -1], [1, 1, 1], [-1, -1, -1]]).to(bnn.type.INTEGER),
         # activation
-        torch.Tensor([[1, 1], [1, -1], [-1, -1], [-1, 1]]).to(torch.int),
+        torch.Tensor([[1, 1], [1, -1], [-1, -1], [-1, 1]]).to(bnn.type.INTEGER),
         # expected_out_grad
-        torch.Tensor([[-1, 1], [1, -1], [0, 0], [0, 0]]).to(torch.int),
+        torch.Tensor([[-1, 1], [1, -1], [0, 0], [0, 0]]).to(bnn.type.INTEGER),
         # expected_W_grad
-        torch.Tensor([[0, 1, 0], [-4, -1, 0]]).to(torch.int),
+        torch.Tensor([[0, 1, 0], [-4, -1, 0]]).to(bnn.type.INTEGER),
     ),
 ]
 

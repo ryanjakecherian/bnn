@@ -1,4 +1,5 @@
 import bnn.random
+import bnn.type
 import pytest
 import torch
 from bnn.random import VALUE_PROB_PAIR as VPP
@@ -10,7 +11,7 @@ test_generate_random_ternary_tensor_cases = [0.1 * i for i in range(11)]
 def test_generate_random_ternary_tensor(desired_var):
     torch.manual_seed(42)
 
-    for DTYPE in (torch.int, torch.float):
+    for DTYPE in (bnn.type.INTEGER, torch.float):
         SHAPE = [3000, 3000]
 
         random = bnn.random.generate_random_ternary_tensor(

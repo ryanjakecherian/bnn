@@ -2,6 +2,8 @@ import typing
 
 import torch
 
+import bnn.type
+
 __all__ = [
     'calc_desired_var',
     'generate_random_ternary_tensor',
@@ -104,7 +106,7 @@ def sample_iid_tensor_from_discrete_distribution(
 ) -> torch.Tensor:
     check_is_valid_distribution(distribution)
 
-    out = torch.empty(shape, dtype=torch.int)
+    out = torch.empty(shape, dtype=bnn.type.INTEGER)
 
     uniform = torch.rand_like(out, dtype=torch.float)
 

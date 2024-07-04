@@ -2,6 +2,7 @@ import torch
 
 import bnn.functions
 import bnn.random
+import bnn.type
 
 __all__ = [
     'TernBinLayer',
@@ -44,7 +45,7 @@ class TernBinLayer(torch.nn.Module):
 
     def _create_W(self):
         self.W = torch.nn.Parameter(
-            data=torch.zeros(self.input_dim, self.output_dim, dtype=torch.int),
+            data=torch.zeros(self.input_dim, self.output_dim, dtype=bnn.type.INTEGER),
             requires_grad=False,
         )
 

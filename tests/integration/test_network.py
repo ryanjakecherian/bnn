@@ -4,6 +4,7 @@ import bnn.functions
 import bnn.layer
 import bnn.loss
 import bnn.network
+import bnn.type
 import pytest
 import torch
 
@@ -47,8 +48,8 @@ def random_data(request):
 
 
 def test_random_data(random_data: RandomTestData):
-    assert random_data.input.dtype is torch.int
-    assert random_data.target.dtype is torch.int
+    assert random_data.input.dtype is bnn.type.INTEGER
+    assert random_data.target.dtype is bnn.type.INTEGER
 
     assert random_data.input_dim == random_data.input.shape[-1]
     assert random_data.output_dim == random_data.target.shape[-1]
@@ -137,78 +138,78 @@ test_integration_forwards_and_backwards_set_data_cases = [
     (
         # Ws
         [
-            torch.ones(10, 20, dtype=torch.int),
-            torch.ones(20, 5, dtype=torch.int),
+            torch.ones(10, 20, dtype=bnn.type.INTEGER),
+            torch.ones(20, 5, dtype=bnn.type.INTEGER),
         ],
         # x
-        torch.ones(10, dtype=torch.int),
+        torch.ones(10, dtype=bnn.type.INTEGER),
         # expected_input
         [
-            torch.ones(10, dtype=torch.int),
-            torch.ones(20, dtype=torch.int),
+            torch.ones(10, dtype=bnn.type.INTEGER),
+            torch.ones(20, dtype=bnn.type.INTEGER),
         ],
         # expected_out
-        torch.ones(5, dtype=torch.int),
+        torch.ones(5, dtype=bnn.type.INTEGER),
         # grad
-        torch.ones(5, dtype=torch.int),
+        torch.ones(5, dtype=bnn.type.INTEGER),
         # expected_grad_out
-        torch.ones(10, dtype=torch.int),
+        torch.ones(10, dtype=bnn.type.INTEGER),
         # expected_grad_Ws
         [
-            torch.ones(10, 20, dtype=torch.int),
-            torch.ones(20, 5, dtype=torch.int),
+            torch.ones(10, 20, dtype=bnn.type.INTEGER),
+            torch.ones(20, 5, dtype=bnn.type.INTEGER),
         ],
     ),
     # all ones, some negative
     (
         # Ws
         [
-            torch.ones(10, 20, dtype=torch.int),
-            torch.ones(20, 5, dtype=torch.int),
+            torch.ones(10, 20, dtype=bnn.type.INTEGER),
+            torch.ones(20, 5, dtype=bnn.type.INTEGER),
         ],
         # x
-        torch.ones(10, dtype=torch.int),
+        torch.ones(10, dtype=bnn.type.INTEGER),
         # expected_input
         [
-            torch.ones(10, dtype=torch.int),
-            torch.ones(20, dtype=torch.int),
+            torch.ones(10, dtype=bnn.type.INTEGER),
+            torch.ones(20, dtype=bnn.type.INTEGER),
         ],
         # expected_out
-        torch.ones(5, dtype=torch.int),
+        torch.ones(5, dtype=bnn.type.INTEGER),
         # grad
-        -torch.ones(5, dtype=torch.int),
+        -torch.ones(5, dtype=bnn.type.INTEGER),
         # expected_grad_out
-        -torch.ones(10, dtype=torch.int),
+        -torch.ones(10, dtype=bnn.type.INTEGER),
         # expected_grad_Ws
         [
-            -torch.ones(10, 20, dtype=torch.int),
-            -torch.ones(20, 5, dtype=torch.int),
+            -torch.ones(10, 20, dtype=bnn.type.INTEGER),
+            -torch.ones(20, 5, dtype=bnn.type.INTEGER),
         ],
     ),
     # all ones, some negative
     (
         # Ws
         [
-            -torch.ones(10, 20, dtype=torch.int),
-            torch.ones(20, 5, dtype=torch.int),
+            -torch.ones(10, 20, dtype=bnn.type.INTEGER),
+            torch.ones(20, 5, dtype=bnn.type.INTEGER),
         ],
         # x
-        torch.ones(10, dtype=torch.int),
+        torch.ones(10, dtype=bnn.type.INTEGER),
         # expected_input
         [
-            torch.ones(10, dtype=torch.int),
-            -torch.ones(20, dtype=torch.int),
+            torch.ones(10, dtype=bnn.type.INTEGER),
+            -torch.ones(20, dtype=bnn.type.INTEGER),
         ],
         # expected_out
-        -torch.ones(5, dtype=torch.int),
+        -torch.ones(5, dtype=bnn.type.INTEGER),
         # grad
-        torch.ones(5, dtype=torch.int),
+        torch.ones(5, dtype=bnn.type.INTEGER),
         # expected_grad_out
-        -torch.ones(10, dtype=torch.int),
+        -torch.ones(10, dtype=bnn.type.INTEGER),
         # expected_grad_Ws
         [
-            torch.ones(10, 20, dtype=torch.int),
-            -torch.ones(20, 5, dtype=torch.int),
+            torch.ones(10, 20, dtype=bnn.type.INTEGER),
+            -torch.ones(20, 5, dtype=bnn.type.INTEGER),
         ],
     ),
 ]

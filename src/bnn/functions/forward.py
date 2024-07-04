@@ -2,6 +2,8 @@ import abc
 
 import torch
 
+import bnn.type
+
 from . import functions
 
 __all__ = [
@@ -41,7 +43,7 @@ class LayerMeanBinarise(MatMulBinarise):
         # NOTE means over layer dimension - samples stay indepenent :)
         means = torch.mean(x.to(torch.float), dim=-1)
 
-        out = torch.ones_like(x, dtype=torch.int)
+        out = torch.ones_like(x, dtype=bnn.type.INTEGER)
         out[x < means[..., None]] = -1
 
         return out
@@ -53,7 +55,7 @@ class LayerMedianBinarise(MatMulBinarise):
         medians_out = torch.median(x, dim=-1)
         medians = medians_out.values
 
-        out = torch.ones_like(x, dtype=torch.int)
+        out = torch.ones_like(x, dtype=bnn.type.INTEGER)
         out[x < medians[..., None]] = -1
 
         return out

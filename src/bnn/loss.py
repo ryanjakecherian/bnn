@@ -2,6 +2,8 @@ import abc
 
 import torch
 
+import bnn.type
+
 __all___ = [
     'LossFunction',
     'l1',
@@ -63,5 +65,5 @@ class CrossEntropyLoss(LossFunction):
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        scaled_target = target.to(torch.int) * 2 - 1
+        scaled_target = target.to(bnn.type.INTEGER) * 2 - 1
         return torch.sign(scaled_target - output)

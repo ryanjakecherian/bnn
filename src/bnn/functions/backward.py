@@ -2,6 +2,8 @@ import abc
 
 import torch
 
+import bnn.type
+
 from . import functions
 
 __all__ = [
@@ -48,12 +50,12 @@ class BackprojectTernarise(BackwardFunc):
             grad.to(functions.TORCH_FLOAT_TYPE),
         ).to(W.dtype)
 
-        W_grad_int = W_grad.to(torch.int)
+        W_grad_int = W_grad.to(bnn.type.INTEGER)
 
         out_grad = self.gradient(W=W, input=input, grad=grad)
 
         out_tern_grad = self.ternarise(out_grad)
-        out_tern_grad_int = out_tern_grad.to(torch.int)
+        out_tern_grad_int = out_tern_grad.to(bnn.type.INTEGER)
 
         return W_grad_int, out_tern_grad_int
 
@@ -79,7 +81,7 @@ class StochasticTernarise(BackprojectTernarise):
         scaled = torch.abs(grad) / (self.hidden_dim * (1 - self.sparsity + EPS))
 
         scaled_clipped = torch.clamp_max(scaled, 1.0)
-        out_grad = (torch.bernoulli(scaled_clipped) * sign).to(torch.int)
+        out_grad = (torch.bernoulli(scaled_clipped) * sign).to(bnn.type.INTEGER)
 
         return out_grad
 
@@ -94,7 +96,7 @@ class LayerMeanStdTernarise(BackprojectTernarise):
         # NOTE done over layer dimension - samples stay indepenent :)
         stds, means = torch.std_mean(grad.to(torch.float), dim=-1)
 
-        out = torch.zeros_like(grad, dtype=torch.int)
+        out = torch.zeros_like(grad, dtype=bnn.type.INTEGER)
 
         # calculate thresholds
         threshold_hi = torch.clamp_min(means + stds * self.half_range_stds, 0)
@@ -135,7 +137,7 @@ class LayerQuantileTernarise(BackprojectTernarise):
         lo_quants = torch.clamp_max(lo_quants, max=0)
         hi_quants = torch.clamp_min(hi_quants, min=0)
 
-        out = torch.zeros_like(grad, dtype=torch.int)
+        out = torch.zeros_like(grad, dtype=bnn.type.INTEGER)
 
         # apply
         out[grad > hi_quants[..., None]] = 1
@@ -198,4 +200,4 @@ class BackwardBitCountMax(SignTernarise):
 # HACK this is far from the "ACTUAL" gradient as it assumed sign == identity.
 class ActualGradient(BackprojectTernarise):
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
-        return grad.to(torch.int)
+        return grad.to(bnn.type.INTEGER)

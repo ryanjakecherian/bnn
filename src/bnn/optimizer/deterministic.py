@@ -1,5 +1,7 @@
 import torch
 
+import bnn.type
+
 __all__ = [
     'DeterministicSGD',
 ]
@@ -47,8 +49,8 @@ def _deterministic_sgd(
     lr: float,
 ) -> int:
     # FIXME - currently going to assume symbols are {-1, 0, 1}...
-    grad_sign = torch.sign(param.grad).to(torch.int)
-    grad_abs = torch.abs(param.grad).to(torch.int)
+    grad_sign = torch.sign(param.grad).to(bnn.type.INTEGER)
+    grad_abs = torch.abs(param.grad).to(bnn.type.INTEGER)
 
     # lr = 0 nothing is trained
     # lr = 1 everything is towards the sign of its grad
@@ -64,6 +66,6 @@ def _deterministic_sgd(
     num_flipped = torch.sum(un_saturated)
 
     # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
-    param.data = torch.sign((param.data - signed_flips)).to(torch.int)
+    param.data = torch.sign((param.data - signed_flips)).to(bnn.type.INTEGER)
 
     return num_flipped

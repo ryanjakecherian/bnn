@@ -4,23 +4,23 @@ import torch
 
 test_l1_forward_cases = [
     (
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
         0,
     ),
     (
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        -torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        -torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
         12,
     ),
     (
-        torch.Tensor([1, 1, -1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, -1, 1, 1, 1, 1]).to(torch.int),
+        torch.Tensor([1, 1, -1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, -1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
         4,
     ),
     (
-        torch.Tensor([-1, -1, -1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, -1, 1, 1, 1, 0]).to(torch.int),
+        torch.Tensor([-1, -1, -1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, -1, 1, 1, 1, 0]).to(bnn.type.INTEGER),
         5,
     ),
 ]
@@ -34,24 +34,24 @@ def test_l1_forward(output, target, expected_loss):
 
 test_l1_backward_cases = [
     (
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([0, 0, 0, 0, 0, 0]).to(torch.int),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([0, 0, 0, 0, 0, 0]).to(bnn.type.INTEGER),
     ),
     (
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        -torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, 1, 1, 1, 1, 1]).to(torch.int),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        -torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, 1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
     ),
     (
-        torch.Tensor([1, 1, -1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, -1, 1, 1, 1, 1]).to(torch.int),
-        -torch.Tensor([0, -1, 1, 0, 0, 0]).to(torch.int),
+        torch.Tensor([1, 1, -1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, -1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        -torch.Tensor([0, -1, 1, 0, 0, 0]).to(bnn.type.INTEGER),
     ),
     (
-        torch.Tensor([-1, -1, -1, 1, 1, 1]).to(torch.int),
-        torch.Tensor([1, -1, 1, 1, 1, 1]).to(torch.int),
-        -torch.Tensor([1, 0, 1, 0, 0, 0]).to(torch.int),
+        torch.Tensor([-1, -1, -1, 1, 1, 1]).to(bnn.type.INTEGER),
+        torch.Tensor([1, -1, 1, 1, 1, 1]).to(bnn.type.INTEGER),
+        -torch.Tensor([1, 0, 1, 0, 0, 0]).to(bnn.type.INTEGER),
     ),
 ]
 

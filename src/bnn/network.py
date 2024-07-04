@@ -2,6 +2,7 @@ import torch
 
 import bnn.functions
 import bnn.layer
+import bnn.type
 
 __all__ = [
     'TernBinNetwork',
@@ -72,7 +73,7 @@ class TernBinNetwork(torch.nn.Module):
             # TODO check - should this be in-place or create a new parameter?
             # init activations and grads
             self.input[layer_name] = torch.nn.Parameter(
-                data=torch.zeros(layer.input_dim, layer.output_dim, dtype=torch.int),
+                data=torch.zeros(layer.input_dim, layer.output_dim, dtype=bnn.type.INTEGER),
                 requires_grad=False,
             )
             self.grad[layer_name] = torch.nn.Parameter(

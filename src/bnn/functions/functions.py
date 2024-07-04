@@ -1,6 +1,8 @@
 import torch
 import torch.autograd
 
+import bnn.type
+
 __all__ = [
     'binarise',
     'ternarise',
@@ -13,7 +15,7 @@ def binarise(x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
     out = torch.ones_like(x)
     out[x < threshold] = -1
 
-    return out.to(torch.int)
+    return out.to(bnn.type.INTEGER)
 
 
 def ternarise(
@@ -41,7 +43,7 @@ def int_matmul(
     B: torch.Tensor,
 ) -> torch.Tensor:
     AB_float = torch.matmul(A.to(TORCH_FLOAT_TYPE), B.to(TORCH_FLOAT_TYPE))
-    AB_int = torch.round(AB_float).to(torch.int)
+    AB_int = torch.round(AB_float).to(bnn.type.INTEGER)
     return AB_int
 
 
