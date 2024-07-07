@@ -12,6 +12,7 @@ __all__ = [
     'save',
     'scheduler',
     'type',
+    'utils',
 ]
 
 from . import (
@@ -25,4 +26,5 @@ from . import (
     random,
     scheduler,
     type,
+    utils,
 )

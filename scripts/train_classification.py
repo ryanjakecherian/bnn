@@ -243,7 +243,7 @@ def setup_wandb(cfg: omegaconf.DictConfig):
     run = wandb.init(
         project=cfg.meta.project,
         config=wandb_config,
-        name=cfg.meta.name,
+        name=bnn.utils.NOW_STRING + '-' + cfg.meta.name,
     )
 
     wandb.define_metric('train/epoch')
