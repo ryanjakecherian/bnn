@@ -22,6 +22,11 @@ train:
   save_dir: ~/tmp/test/
   description: 'none'
 
+meta:
+  project: 'train_classifier'
+  name: null
+  seed: 0
+
 hydra:
   # Logging configuration: https://hydra.cc/docs/tutorials/basic/running_your_app/logging/
   verbose: False

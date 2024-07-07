@@ -2,4 +2,4 @@ import torch
 
 __all__ = ('INTEGER',)
 
-INTEGER = torch.int32
+INTEGER = torch.int64

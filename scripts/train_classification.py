@@ -241,9 +241,9 @@ def train(
 def setup_wandb(cfg: omegaconf.DictConfig):
     wandb_config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
     run = wandb.init(
-        project='train_classifier',
+        project=cfg.meta.project,
         config=wandb_config,
-        name=None,
+        name=cfg.meta.name,
     )
 
     wandb.define_metric('train/epoch')
@@ -258,6 +258,8 @@ def setup_wandb(cfg: omegaconf.DictConfig):
 def main(cfg: omegaconf.DictConfig):
     # resolve config
     omegaconf.OmegaConf.resolve(cfg)
+
+    torch.manual_seed(cfg.meta.seed)
 
     # instantiate
     network: bnn.network.TernBinNetwork = hydra.utils.instantiate(cfg.network.model)
