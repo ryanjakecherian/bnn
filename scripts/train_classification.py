@@ -203,7 +203,7 @@ def train(
         )
 
         if log:
-            logger.info(f'({run_name}) - epoch {epoch}: logging')
+            # logger.info(f'({run_name}) - epoch {epoch}: logging')
             test_epoch(
                 TBNN=TBNN,
                 loss_func=loss_func,
@@ -212,7 +212,7 @@ def train(
             )
 
         if checkpoint:
-            logger.info(f'({run_name}) - epoch {epoch}: checkpointing')
+            # logger.info(f'({run_name}) - epoch {epoch}: checkpointing')
             fname = save_dir / f'chkpt_epoch_{epoch:06d}.npz'
             bnn.save.save_network_compressed(network=TBNN, filename=fname)
 
@@ -232,8 +232,9 @@ def train(
         if scheduler is not None:
             scheduler.step()
             if log:
-                logger.info(f'LR according to sched: {scheduler.get_last_lr()}')
-                logger.info(f"LR according to optim: {[pg['lr'] for pg in optimizer.param_groups]}")
+                # logger.info(f'LR according to sched: {scheduler.get_last_lr()}')
+                # logger.info(f"LR according to optim: {[pg['lr'] for pg in optimizer.param_groups]}")
+                pass
 
     return
 
