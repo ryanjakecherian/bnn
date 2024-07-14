@@ -75,10 +75,15 @@ class SignTernarise(BackprojectTernarise):
 
 
 class StochasticTernarise(BackprojectTernarise):
+    alpha: float
+
+    def __init__(self, alpha=1):
+        self.alpha = alpha
+
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
         EPS = 1e-8
         sign = torch.sign(grad)
-        scaled = torch.abs(grad) / (self.hidden_dim * (1 - self.sparsity + EPS))
+        scaled = self.alpha * torch.abs(grad) / (self.hidden_dim * (1 - self.sparsity + EPS))
 
         scaled_clipped = torch.clamp_max(scaled, 1.0)
         out_grad = (torch.bernoulli(scaled_clipped) * sign).to(bnn.type.INTEGER)
