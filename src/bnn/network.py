@@ -72,15 +72,12 @@ class TernBinNetwork(torch.nn.Module):
         for layer_name, layer in self.layers.items():
             # TODO check - should this be in-place or create a new parameter?
             # init activations and grads
-            self.input[layer_name] = torch.nn.Parameter(
-                data=torch.zeros(layer.input_dim, layer.output_dim, dtype=bnn.type.INTEGER),
-                requires_grad=False,
-            )
-            self.grad[layer_name] = torch.nn.Parameter(
-                data=torch.zeros_like(self.input[layer_name]),
-                requires_grad=False,
-            )
 
+            #okay ive changed this to no longer instantiate paramaters, but just tensors.
+            #this is because i dont know why these would be parameters anyway, and also because it means that when network.parameters() is called, these were being included and i think this was affecting optimizer loop over param_groups?
+            self.input[layer_name] = torch.zeros(layer.input_dim, layer.output_dim, dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
+            self.grad[layer_name] = torch.zeros_like(self.input[layer_name], dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
+               
         return
 
     def _initialise(
@@ -136,7 +133,7 @@ class TernBinNetwork(torch.nn.Module):
 
         for layer_name, layer in self.layers.items():
             if layer_name != last_layer:
-                self.input[layer_name].data = x
+                self.input[layer_name] = x
                 x = layer(x)
 
         x = bnn.functions.int_matmul(x, layer.W)
@@ -144,8 +141,8 @@ class TernBinNetwork(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer_name, layer in self.layers.items():
-            self.input[layer_name].data = x
-            x = layer(x)
+            self.input[layer_name] = x     #where x is the input (binarised!) activations which is the output from previous layer
+            x = layer(x)    #calls forward of layer (because layer is a nn.module), which in turn calls forward_func of the layer, which matmuls(x,W) and binarises.
 
         return x
 
@@ -154,8 +151,8 @@ class TernBinNetwork(torch.nn.Module):
         for layer_name, layer in reversed(self.layers.items()):
             layer: bnn.layer.TernBinLayer
 
-            grad = layer.backward(grad, self.input[layer_name])
-            self.grad[layer_name].data = grad
+            grad = layer.backward(grad, self.input[layer_name])    #calls backward, providing the arguments: grad and the input activations (which were the output of the forward pass)
+            self.grad[layer_name] = grad
 
         return grad
 
@@ -165,7 +162,7 @@ class TernBinNetwork(torch.nn.Module):
             layer: bnn.layer.TernBinLayer
 
             grad = layer.backward_actual(grad, self.input[layer_name])
-            self.grad[layer_name].data = grad
+            self.grad[layer_name] = grad
 
         return grad
 

@@ -13,6 +13,9 @@ __all__ = [
     'LayerMeanStdTernarise',
     'LayerQuantileTernarise',
     'STETernarise',
+    'BackwardBitCountMax',
+    'ActualGradient',
+    'reluBackward',
 ]
 
 EPS = 0.01
@@ -37,13 +40,14 @@ class BackprojectTernarise(BackwardFunc):
         grad: torch.Tensor,
         input: torch.Tensor,
         W: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+        ) -> tuple[torch.Tensor, torch.Tensor]:
+        
         self.hidden_dim = W.shape[-1]
         self.sparsity = torch.mean((W == 0).to(torch.float))
 
         grad = self.reshape_grad(grad)
 
-        # FIXME check if long_int -> int conversion is safe!
+        #W_grad
         W_grad = torch.einsum(
             '...j,...k->jk',
             input.to(functions.TORCH_FLOAT_TYPE),
@@ -52,17 +56,21 @@ class BackprojectTernarise(BackwardFunc):
 
         W_grad_int = W_grad.to(bnn.type.INTEGER)
 
+
+        #out_grad
         out_grad = self.gradient(W=W, input=input, grad=grad)
 
         out_tern_grad = self.ternarise(out_grad)
         out_tern_grad_int = out_tern_grad.to(bnn.type.INTEGER)
 
+
+
         return W_grad_int, out_tern_grad_int
 
-    def reshape_grad(self, grad: torch.Tensor) -> torch.Tensor:
+    def reshape_grad(self, grad: torch.Tensor) -> torch.Tensor: #he just defined this here to give us option to override in the subclasses (namely, BackwardBitCountMax)
         return grad
 
-    def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor) -> torch.Tensor:
+    def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor) -> torch.Tensor: #same here, just defining so we can override in subclasses
         return functions.int_matmul(grad, W.T)
 
     @abc.abstractmethod
@@ -181,15 +189,15 @@ class STETernarise(BackprojectTernarise):
 
     def gradient(self, W: torch.Tensor, input: torch.Tensor, grad: torch.Tensor):
         output = functions.int_matmul(input, W)
-        output_ste = torch.abs(output) <= self.zero_grad_mag_thresh
-        grad_ste = grad * output_ste
+        output_ste = torch.abs(output) <= self.zero_grad_mag_thresh     #outputs a boolean tensor {0,1}
+        grad_ste = grad * output_ste    #basically if output pre-activations during forward pass are zero, the gradient in backward pass is zeroed out 
 
-        out_grad = functions.int_matmul(grad_ste, W.T)
+        out_grad = functions.int_matmul(grad_ste, W.T)  #then continue as normal, backpropagating the gradient
 
-        return out_grad
+        return out_grad #not ternary since matmul of ternary matrices (grad_ste and W.T) is not ternary
 
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
-        return torch.sign(grad)
+        return torch.sign(grad)     #ternarising the out_grad produced by gradient()
 
 
 class BackwardBitCountMax(SignTernarise):
@@ -206,3 +214,44 @@ class BackwardBitCountMax(SignTernarise):
 class ActualGradient(BackprojectTernarise):
     def ternarise(self, grad: torch.Tensor) -> torch.Tensor:
         return grad.to(bnn.type.INTEGER)
+
+
+
+# My new backwards function.
+class reluBackward(BackwardFunc):
+    #i think these are for metrics.
+    hidden_dim: int
+    sparsity: float
+
+    def __call__(
+        self,
+        grad: torch.Tensor,
+        input: torch.Tensor,
+        W: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        
+        #i think these are for metrics.
+        self.hidden_dim = W.shape[-1]
+        self.sparsity = torch.mean((W == 0).to(torch.float))
+
+
+        preactivations = input @ W
+
+        if((preactivations > 0).abs().sum() == 0):
+            print("None of the preacts are > zero!?!?!?!?!?!?")
+            print(torch.sign(preactivations).sum())
+            print(preactivations.size())
+
+            #damn, theyre all negative!
+            # wait the last layer is a onehot layer, so the backward_func should be a different function!!
+            # if we fixed that, then out_grad would be fine for last layer. 
+            # but then the next layer would go back to relubackward, and we would again need at least some of the preactivations to be > 0.
+            
+            # print(input.abs().sum())
+            # print(W.abs().sum())
+
+        Z_grad = grad * (preactivations > 0).to(grad.dtype) #grad is in Reals, so Z_grad will be in Reals too
+        out_grad = Z_grad @ (W.T)                #Z_grad is in Reals, so out_grad will be in Reals too
+        W_grad = (input.T) @ Z_grad              #Z_grad is in Reals, and input is in integer, so W_grad will be in Reals too
+
+        return W_grad, out_grad

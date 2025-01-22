@@ -1,5 +1,5 @@
 # The Conda environment specification for bnn
-name: bnn
+name: bernardo_env
 channels:
   - defaults
   - conda-forge

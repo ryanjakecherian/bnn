@@ -117,7 +117,7 @@ def sample_iid_tensor_from_discrete_distribution(
         out[uniform < 0] = value
         uniform[uniform < 0] += 1
 
-    return out
+    return out.float() #OVERRIDING FROM INT TO FLOAT HERE BECAUSE WE WANT OUT WEIGHTS TO BE FLOATS, BECAUSE WE WANT OUT W.GRAD TO BE FLOATS.
 
 
 def discrete_mean(dist: DISCRETE_DIST) -> float:

@@ -30,8 +30,8 @@ class TernBinLayer(torch.nn.Module):
         self.input_dim = input_dim
         self.output_dim = output_dim
 
-        self._create_W()
-        self._initialise_W()
+        self._create_W_and_b()
+        self._initialise_W_and_b()
 
         self.forward_func = forward_func
         self.backward_func = backward_func
@@ -43,13 +43,18 @@ class TernBinLayer(torch.nn.Module):
             pass
         super().to(device)
 
-    def _create_W(self):
+    def _create_W_and_b(self):        #create_params()
         self.W = torch.nn.Parameter(
-            data=torch.zeros(self.input_dim, self.output_dim, dtype=bnn.type.INTEGER),
-            requires_grad=False,
+            data=torch.zeros(self.input_dim, self.output_dim, dtype=torch.float),   #FIXME HAVE TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS 
+            requires_grad=False,    #tells autograd not to track gradients with respect to this tensor
+        )
+        self.b = torch.nn.Parameter(
+            data=torch.zeros(self.output_dim, dtype=torch.float),    #FIXME HAVE TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
+            requires_grad=False,    #tells autograd not to track gradients with respect to this tensor
         )
 
-    def _initialise_W(
+
+    def _initialise_W_and_b(          #initialise_params() (where we remember that W and b have different initialisations) (normally b initialised to 0 ?) b \in mathbb{R}^{d_out} default autograd. bias updates dont need to be quantised. lr_b and lr_w may need to be different.
         self,
         var: float | None = None,
         mean: float | None = None,
@@ -72,16 +77,20 @@ class TernBinLayer(torch.nn.Module):
             self.W.shape,
             distribution=distribution,
         )
+
+        #no need to init bias, already initialised to 0
+
         # reset grad
         self.W.grad = None
-
+        self.b.grad = None
+    
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.forward_func(x=x, W=self.W)
+        return self.forward_func(x=x, W=self.W, b=self.b)
 
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
-        W_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W)
-
+        W_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W) 
+        
         self.W.grad = W_grad
 
         return out_grad
@@ -95,4 +104,4 @@ class TernBinLayer(torch.nn.Module):
         return out_grad
 
     def __repr__(self):
-        return f'W: {self.W}'
+        return f'W: {self.W}, b: {self.b}'

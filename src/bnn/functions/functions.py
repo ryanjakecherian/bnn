@@ -13,7 +13,7 @@ __all__ = [
 
 def binarise(x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
     out = torch.ones_like(x)
-    out[x < threshold] = -1
+    out[x < threshold] = 0 #changed to -1 for new network
 
     return out.to(bnn.type.INTEGER)
 
@@ -52,6 +52,16 @@ def one_hot_argmax(x: torch.Tensor) -> torch.Tensor:
 
     # empty array
     out = torch.full_like(x, fill_value=-1)
+    # add 1s at argmax
+    out.scatter_(dim=-1, index=argmax, value=1)
+    return out
+
+
+def one_hot_argmax0(x: torch.Tensor) -> torch.Tensor:
+    argmax = torch.argmax(x, dim=-1, keepdim=True)
+
+    # empty array
+    out = torch.full_like(x, fill_value=0) #switched from -1 to 0 for new network
     # add 1s at argmax
     out.scatter_(dim=-1, index=argmax, value=1)
     return out

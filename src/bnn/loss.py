@@ -42,18 +42,14 @@ class l2(LossFunction):
     @staticmethod
     def forward(output: torch.Tensor, target: torch.Tensor) -> int:
         error = torch.square(output - target)
-        loss = torch.sqrt(torch.sum(error))
-
-        # mean
-        if error.ndim > 1:
-            loss = loss / len(error)
+        loss = (torch.mean(error))
 
         return loss
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return torch.sign(output - target)
-
+        grad = (output - target) #bernardo originally ternarised this, but we are not ternarising the backprop gradients.  
+        return grad / grad.shape[0] 
 
 class CrossEntropyLoss(LossFunction):
     @staticmethod
