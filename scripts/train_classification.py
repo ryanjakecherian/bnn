@@ -40,6 +40,8 @@ def train_epoch(
     num_correct = 0
 
     for batch_id, batch in enumerate(DL):
+        print(f'batch_id: {batch_id}')                                 #debug
+
         # update number of dps seen...
         batch_datapoints = len(batch.input)
         datapoints += batch_datapoints
@@ -48,9 +50,22 @@ def train_epoch(
         output = TBNN.forward(batch.input)
         loss = loss_func.forward(output=output, target=batch.target)
 
+        #debug
+        # torch.set_printoptions(profile="full")             
+        print(f"Layer L input activations: {TBNN.input['TernBinLayer2']}")
+        # torch.set_printoptions(profile="default")                          
+        print(f"Layer L weights: {TBNN.layers['TernBinLayer2'].W}")   
+        print(f"Layer L pre-activations: {TBNN.input['TernBinLayer2'] @ TBNN.layers['TernBinLayer2'].W}")
+        print(f"Layer L output: {output}")
+        print(f"Layer L target: {batch.target}")
+
+        print(f'loss: {loss}') 
+
         # backward pass
         grad = loss_func.backward(output=output, target=batch.target)
+        print(f'grad: {grad}')                        #debug
         TBNN.backward(grad)
+        print(f"Layer L output grad: {TBNN.grad['TernBinLayer2']}") #debug
 
         # optimizer step
         batch_proportion_flipped, all_num_flips, all_num_parmeters = optimizer.step()
@@ -58,7 +73,6 @@ def train_epoch(
 
         # sum loss
         epoch_loss += (loss - epoch_loss) * batch_datapoints / datapoints
-
         if log:
             # acc
             output_argmax = torch.argmax(output, dim=-1)
@@ -190,6 +204,7 @@ def train(
     early_exit = False
 
     for epoch in range(train_epochs):
+        print('epoch:', epoch)
         log = early_exit or (epoch % log_rate) == 0 or (epoch + 1 == train_epochs)
         checkpoint = early_exit or (epoch % checkpoint_rate) == 0 or (epoch + 1 == train_epochs)
 
