@@ -13,6 +13,7 @@ __all__ = [
     'LayerMeanStdTernarise',
     'LayerQuantileTernarise',
     'STETernarise',
+    'Modal'
 ]
 
 EPS = 0.01
@@ -200,6 +201,66 @@ class BackwardBitCountMax(SignTernarise):
 
     def reshape_grad(self, grad: torch.Tensor):
         return torch.concatenate([grad] * self.extra_dims, dim=-1)
+
+class Modal(BackwardFunc):
+    hidden_dim: int
+    sparsity: float
+
+    def __call__(
+        self,
+        grad: torch.Tensor,
+        input: torch.Tensor,
+        W: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        
+        #i think these are for metrics.
+        self.hidden_dim = W.shape[-1]
+        self.sparsity = torch.mean((W == 0).to(torch.float))
+
+
+
+        Z_grad = grad                   #.to(torch.float)   #grad is in Reals, so Z_grad will be in Reals too
+        out_grad = functions.int_matmul(Z_grad, W.T)                           #Z_grad is in Reals, so out_grad will be in Reals too
+        
+
+        preactivation = functions.int_matmul(input, W)
+
+        signed_grad = torch.sign(grad)
+        positive_mask = signed_grad > 0
+        turning_points = torch.full_like(signed_grad, -1)
+        turning_points[~positive_mask] = 0
+
+        dx = turning_points - preactivation
+        dx = dx.abs()
+        dx, _ = torch.max(dx, dim=0)
+
+        W_grad = functions.int_matmul(input.T, Z_grad)                         #Z_grad is in Reals, and input is in integer, so W_grad will be in Reals too
+
+
+        W_grad_active = torch.zeros_like(W_grad)
+        for col_idx in range(W_grad.shape[1]):
+            n = dx[col_idx]  # Get the number of elements to set to 1 for this column
+            quotient, remainder = divmod(n.item(), W_grad.shape[0])
+            
+            
+            if n > W_grad.shape[0]:
+                print(f"n larger than number of rows in W! n: {n}, W_grad.shape[0]: {W_grad.shape[0]}")
+                print(quotient)
+                # print('setting n to W_grad.shape[0]')       #FIXME make this so if n is greater than the numebr of columns, we simply run the loop iteratively, deducting the number of rows from n each time.
+                # n = W_grad.shape[0]
+
+            
+            W_grad_modal = (quotient) * torch.sign(W_grad)
+            _, indices = torch.topk(W_grad.abs()[:, col_idx], k=remainder, largest=True)  # Get top-n indices
+            W_grad_active[indices, col_idx] = 1  # Set those indices to 1 in column col_idx of C
+
+        W_grad_modal += W_grad_active * torch.sign(W_grad)
+        
+
+
+        return W_grad_modal, out_grad
+
+
 
 
 # HACK this is far from the "ACTUAL" gradient as it assumed sign == identity.

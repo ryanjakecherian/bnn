@@ -13,4 +13,4 @@ model:
     - ${network.forward_func_default}
     - ${network.forward_func_last}
   backward_func:
-    _target_: bnn.functions.backward.SignTernarise
+    _target_: bnn.functions.backward.Modal

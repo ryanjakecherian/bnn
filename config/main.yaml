@@ -1,9 +1,9 @@
 # Main Hydra configuration file.
 defaults:
-  - network: TBNN
-  - dataset: target_net
+  - network: TBNN_mnist
+  - dataset: fashion_mnist
   - optimizer: ExpectationSGD
-  - loss: l1
+  - loss: l2
   - scheduler: noop
   # Pretty logging with hydra_colorlog
   - override hydra/job_logging: colorlog
@@ -23,8 +23,8 @@ train:
   description: 'none'
 
 meta:
-  project: 'train_classifier'
-  name: null
+  project: 'MODAL'
+  name: 'f-MNIST Modal test'
   seed: 0
 
 hydra:

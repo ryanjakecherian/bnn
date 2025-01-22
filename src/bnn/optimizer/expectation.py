@@ -32,7 +32,7 @@ class ExpectationSGD(torch.optim.Optimizer):
                     continue
 
                 # aggregate number of flips
-                num_flips = _expectation_sgd(param=param, lr=lr)
+                num_flips = modal_sgd(param=param, lr=lr)
                 num_parameters = torch.numel(param.data)
 
                 all_num_flips.append(num_flips)
@@ -68,5 +68,18 @@ def _expectation_sgd(
 
     # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
     param.data = torch.sign((param.data - signed_flips)).to(bnn.type.INTEGER)
+
+    return num_flipped
+
+
+def modal_sgd(
+    param: torch.Tensor,
+    lr: float,
+) -> int:
+    
+    num_flipped = torch.sum(param.grad.abs())
+
+    # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
+    param.data = torch.sign((param.data - param.grad)).to(bnn.type.INTEGER)
 
     return num_flipped

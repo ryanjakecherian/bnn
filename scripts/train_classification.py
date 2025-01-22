@@ -190,6 +190,7 @@ def train(
     early_exit = False
 
     for epoch in range(train_epochs):
+        print(f'epoch number: {epoch}')
         log = early_exit or (epoch % log_rate) == 0 or (epoch + 1 == train_epochs)
         checkpoint = early_exit or (epoch % checkpoint_rate) == 0 or (epoch + 1 == train_epochs)
 

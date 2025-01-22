@@ -35,7 +35,7 @@ class l1(LossFunction):
 
     @staticmethod
     def backward(output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return torch.sign(output - target)
+        return (output - target)
 
 
 class l2(LossFunction):
