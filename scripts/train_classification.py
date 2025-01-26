@@ -28,7 +28,8 @@ def train_epoch(
     TBNN: bnn.network.TernBinNetwork,
     loss_func: bnn.loss.LossFunction,
     DL: bnn.data.DataLoader,
-    optimizer: torch.optim.Optimizer,
+    W_optimizer: torch.optim.Optimizer,
+    bias_optimizer: torch.optim.Optimizer,
     log: bool,
     metrics: dict,
 ) -> dict:
@@ -52,24 +53,25 @@ def train_epoch(
 
         #debug
         # torch.set_printoptions(profile="full")             
-        print(f"Layer L input activations: {TBNN.input['TernBinLayer2']}")
+        # print(f"Layer L input activations: {TBNN.input['TernBinLayer2']}")
         # torch.set_printoptions(profile="default")                          
-        print(f"Layer L weights: {TBNN.layers['TernBinLayer2'].W}")   
-        print(f"Layer L pre-activations: {TBNN.input['TernBinLayer2'] @ TBNN.layers['TernBinLayer2'].W}")
-        print(f"Layer L output: {output}")
-        print(f"Layer L target: {batch.target}")
+        # print(f"Layer L weights: {TBNN.layers['TernBinLayer2'].W}")   
+        # print(f"Layer L pre-activations: {TBNN.input['TernBinLayer2'] @ TBNN.layers['TernBinLayer2'].W}")
+        # print(f"Layer L output: {output}")
+        # print(f"Layer L target: {batch.target}")
 
-        print(f'loss: {loss}') 
+        # print(f'loss: {loss}') #debug
 
         # backward pass
         grad = loss_func.backward(output=output, target=batch.target)
-        print(f'grad: {grad}')                        #debug
+        # print(f'grad: {grad}')                        #debug
         TBNN.backward(grad)
-        print(f"Layer L output grad: {TBNN.grad['TernBinLayer2']}") #debug
+        # print(f"Layer L output grad: {TBNN.grad['TernBinLayer2']}") #debug
 
         # optimizer step
-        batch_proportion_flipped, all_num_flips, all_num_parmeters = optimizer.step()
+        batch_proportion_flipped, all_num_flips, all_num_parmeters = W_optimizer.step()
         epoch_proportion_flipped += batch_proportion_flipped
+        bias_optimizer.step()
 
         # sum loss
         epoch_loss += (loss - epoch_loss) * batch_datapoints / datapoints
@@ -121,30 +123,51 @@ def train_epoch(
         # images
         w_ds = []
         w_g_ds = []
+        b_ds = []
+        b_g_ds = []
         for name, param in TBNN.named_parameters():
-            if 'W' not in name:
+            if 'b' in name:
+                b_ds.append(bnn.metrics.integer_or_float_hist(param.data))
+                b_g_ds.append(bnn.metrics.integer_or_float_hist(param.grad))
+
+
+            elif 'W' in name:
+                w_ds.append(bnn.metrics.tern_hist(param.data))
+                w_g_ds.append(bnn.metrics.integer_or_float_hist(param.grad))
+
+            else:
                 continue
-            w_ds.append(bnn.metrics.distribution(param.data))
-            w_g_ds.append(bnn.metrics.distribution(param.grad))
 
         i_ds = []
         for input in TBNN.input.values():
-            i_ds.append(bnn.metrics.distribution(input))
+            i_ds.append(bnn.metrics.tern_hist(input))
 
+        z_ds = []
+        for z in TBNN.z.values():
+            z_ds.append(bnn.metrics.integer_or_float_hist(z))
+        
         g_ds = []
         for grad in TBNN.grad.values():
-            g_ds.append(bnn.metrics.distribution(grad))
+            g_ds.append(bnn.metrics.integer_or_float_hist(grad))
 
+        
+
+        b_ds_im = bnn.metrics.distribution_plot(b_ds)
+        b_g_ds_im = bnn.metrics.distribution_plot(b_g_ds)
         w_ds_im = bnn.metrics.distribution_plot(w_ds)
         w_g_ds_im = bnn.metrics.distribution_plot(w_g_ds)
         i_ds_im = bnn.metrics.distribution_plot(i_ds)
         g_ds_im = bnn.metrics.distribution_plot(g_ds)
+        z_ds_im = bnn.metrics.distribution_plot(z_ds)
 
         epoch = metrics['train/epoch']
-        metrics['image/weights'] = wandb.Image(w_ds_im, caption=f'epoch_{epoch}')
-        metrics['image/weight_grads'] = wandb.Image(w_g_ds_im, caption=f'epoch_{epoch}')
-        metrics['image/inputs'] = wandb.Image(i_ds_im, caption=f'epoch_{epoch}')
-        metrics['image/grads'] = wandb.Image(g_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/biases'] = wandb.Image(b_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/bias_grads'] = wandb.Image(b_g_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/weights'] = wandb.Image(w_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/weight_grads'] = wandb.Image(w_g_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/inputs'] = wandb.Image(i_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/grads'] = wandb.Image(g_ds_im, caption=f'epoch_{epoch}')
+        metrics['image(last_batch)/XW+b'] = wandb.Image(z_ds_im, caption=f'epoch_{epoch}')
 
         # log
         wandb.log(metrics)
@@ -191,7 +214,8 @@ def train(
     loss_func: bnn.loss.LossFunction,
     train_DL: bnn.data.DataLoader,
     test_DL: bnn.data.DataLoader,
-    optimizer: torch.optim.Optimizer,
+    W_optimizer: torch.optim.Optimizer,
+    bias_optimizer: torch.optim.Optimizer,
     scheduler: torch.optim.lr_scheduler.LRScheduler | None,
     log_rate: int,
     train_epochs: int,
@@ -212,7 +236,8 @@ def train(
             TBNN=TBNN,
             loss_func=loss_func,
             DL=train_DL,
-            optimizer=optimizer,
+            W_optimizer=W_optimizer,
+            bias_optimizer=bias_optimizer,
             log=log,
             metrics={'train/epoch': epoch},
         )
@@ -282,14 +307,23 @@ def main(cfg: omegaconf.DictConfig):
     train_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.train_data_loader)
     test_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.test_data_loader)
     loss_func: bnn.loss.LossFunction = hydra.utils.instantiate(cfg.loss)
-    optim: torch.optim.Optimizer = hydra.utils.instantiate(
-        config=cfg.optimizer,
-        params=network.parameters(),
+    
+    W_optim: torch.optim.Optimizer = hydra.utils.instantiate(
+        config=cfg.W_optimizer,
+        params=network.named_parameters(),
     )
+    b_optim:torch.optim.Optimizer = hydra.utils.instantiate(
+        config=cfg.b_optimizer,
+        params=network.named_parameters(),
+    )
+
     sched: torch.optim.lr_scheduler.LRScheduler = hydra.utils.instantiate(
         config=cfg.scheduler,
-        optimizer=optim,
+        optimizer=W_optim,
     )
+
+    
+
 
     # initialise net
     network._initialise(W_mean=0, W_zero_prob=0.5)
@@ -316,7 +350,8 @@ def main(cfg: omegaconf.DictConfig):
         loss_func=loss_func,
         train_DL=train_data_loader,
         test_DL=test_data_loader,
-        optimizer=optim,
+        W_optimizer=W_optim,
+        bias_optimizer=b_optim,
         scheduler=sched,
         log_rate=cfg.train.log_rate,
         checkpoint_rate=cfg.train.checkpoint_rate,

@@ -6,7 +6,33 @@ import torch
 import bnn.random
 
 
-def distribution(tensor: torch.Tensor | None) -> bnn.random.DISCRETE_DIST | None:
+
+# two histrogram makers: one for integer/floats where #bins = range/std. dev., one for ternary which only has 3 values
+
+def integer_or_float_hist(input: torch.Tensor):
+    dist = []
+    std = input.std().item()
+    
+    if std == 0:
+        dist.append(bnn.random.VALUE_PROB_PAIR(value=input.mean().item(), probability=1))
+        return dist
+    
+    bins = int((input.max().item() - input.min().item())/std)
+
+    hist_counts = torch.histc(input, bins=bins, min=input.min().item(), max=input.max().item()) 
+    bin_edges = torch.linspace(input.min().item(), input.max().item(), bins + 1)
+    bin_mids = (bin_edges[:-1] + bin_edges[1:]) / 2  # midpoints of bins
+
+    dict = {mid.item(): count.item() for mid, count in zip(bin_mids, hist_counts)}
+    
+    for i in range(len(dict)):
+        key = list(dict.keys())[i]
+        hist_value = dict[key]
+        dist.append(bnn.random.VALUE_PROB_PAIR(value=key, probability=hist_value/input.numel()))    #if we want absolute number of elements, just remove the division by numel
+    return dist
+
+
+def tern_hist(tensor: torch.Tensor | None) -> bnn.random.DISCRETE_DIST | None:
     if tensor is None:
         return None
 
@@ -19,6 +45,7 @@ def distribution(tensor: torch.Tensor | None) -> bnn.random.DISCRETE_DIST | None
         distribution.append(bnn.random.VALUE_PROB_PAIR(value=value.item(), probability=prop))
 
     return distribution
+
 
 
 def distribution_plot(distribution: bnn.random.DISCRETE_DIST) -> np.array:
@@ -34,8 +61,8 @@ def distribution_plot(distribution: bnn.random.DISCRETE_DIST) -> np.array:
     width = 0.1
     for i, (ax, d) in enumerate(zip(axs, distribution + [None] * len(axs))):
         if d is None:
-            ax.plot(np.linspace(min_x, max_x), np.linspace(0, 1), '-', color='red')
-            ax.plot(np.linspace(max_x, min_x), np.linspace(0, 1), '-', color='red')
+            ax.plot(np.linspace(min_x, max_x), np.linspace(0, 1), '-', color='white')   #set colour to white instead of red (joao + red cross = no happy)
+            ax.plot(np.linspace(max_x, min_x), np.linspace(0, 1), '-', color='white')
             ax.axis('off')
 
         else:

@@ -13,6 +13,7 @@ class TernBinNetwork(torch.nn.Module):
     layers: torch.nn.ModuleDict
 
     input: torch.nn.ParameterDict
+    z: torch.nn.ParameterDict
     grad: torch.nn.ParameterDict
 
     dims: list[int]
@@ -27,6 +28,7 @@ class TernBinNetwork(torch.nn.Module):
 
         self.layers = torch.nn.ModuleDict()
         self.input = torch.nn.ParameterDict()
+        self.z = torch.nn.ParameterDict()
         self.grad = torch.nn.ParameterDict()
 
         self.dims = dims
@@ -77,6 +79,7 @@ class TernBinNetwork(torch.nn.Module):
             #this is because i dont know why these would be parameters anyway, and also because it means that when network.parameters() is called, these were being included and i think this was affecting optimizer loop over param_groups?
             self.input[layer_name] = torch.zeros(layer.input_dim, layer.output_dim, dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
             self.grad[layer_name] = torch.zeros_like(self.input[layer_name], dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
+            self.z[layer_name] = torch.zeros_like(self.input[layer_name], dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
                
         return
 
@@ -120,7 +123,7 @@ class TernBinNetwork(torch.nn.Module):
         zipped = zip(self.layers.values(), W_var, W_mean, W_zero_prob)
         for layer, var, mean, zero_prob in zipped:
             layer: bnn.layer.TernBinLayer
-            layer._initialise_W(mean=mean, var=var, zero_prob=zero_prob)
+            layer._initialise_W_and_b(mean=mean, var=var, zero_prob=zero_prob)
 
         # reset grads and activations
         self._clear_input_and_grad()
@@ -142,7 +145,8 @@ class TernBinNetwork(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer_name, layer in self.layers.items():
             self.input[layer_name] = x     #where x is the input (binarised!) activations which is the output from previous layer
-            x = layer(x)    #calls forward of layer (because layer is a nn.module), which in turn calls forward_func of the layer, which matmuls(x,W) and binarises.
+            x, z = layer(x)    #calls forward of layer (because layer is a nn.module), which in turn calls forward_func of the layer, which matmuls(x,W) and binarises.
+            self.z[layer_name] = z
 
         return x
 

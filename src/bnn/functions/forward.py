@@ -29,7 +29,7 @@ class MatMulBinarise(ForwardFunc):
         integer = x @ W + b  #FIXME  I HAVE CHANGED THIS TO FLOAT MATMULS    integer = functions.int_matmul(x, W)
         out_binary = self.binarise(x=integer)
 
-        return out_binary
+        return out_binary, integer
 
     @abc.abstractmethod
     def binarise(self, x: torch.Tensor) -> torch.Tensor: ...
@@ -85,21 +85,21 @@ class reluBinarise(MatMulBinarise):
                 
         out = torch.ones_like(x, dtype=torch.float) #FIXME THIS IS BECAUSE OF THE WHOLE PYTORCH PARAMETER AND GRAD HAVE TO BE SAME TYPE
         out[x < iter_mean] = 0        
-        return out.float()                          # TODO: do we need to store the original for the backward pass?, nah im just recalculating this in the backward pass at the moment
+        return out.float()
 
 
 
 
 
 class MatMulMax(ForwardFunc):
-    def __call__(self, x: torch.Tensor, W: torch.Tensor) -> torch.Tensor:
-        integer = x @ W #FIXME I HAVE CHANGED THIS TO FLOAT MATMULS  integer = functions.int_matmul(x, W)
+    def __call__(self, x: torch.Tensor, W: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+        integer = x @ W + b #FIXME I HAVE CHANGED THIS TO FLOAT MATMULS  integer = functions.int_matmul(x, W)
         
-        print(f'pre-activations: {integer}')    #debug
+        # print(f'pre-activations: {integer}')    #debug
         out_binary = self.binary_max(x=integer)
-        print(f'post-activations: {out_binary}') #debug
+        # print(f'post-activations: {out_binary}') #debug
 
-        return out_binary
+        return out_binary, integer
 
     @abc.abstractmethod
     def binary_max(self, x: torch.Tensor) -> torch.Tensor: ...

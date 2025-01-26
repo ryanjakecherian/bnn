@@ -59,7 +59,6 @@ def one_hot_argmax(x: torch.Tensor) -> torch.Tensor:
 
 def one_hot_argmax0(x: torch.Tensor) -> torch.Tensor:
     argmax = torch.argmax(x, dim=-1, keepdim=True)
-
     # empty array
     out = torch.full_like(x, fill_value=0) #switched from -1 to 0 for new network
     # add 1s at argmax

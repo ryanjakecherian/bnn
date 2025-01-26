@@ -228,6 +228,7 @@ class reluBackward(BackwardFunc):
         grad: torch.Tensor,
         input: torch.Tensor,
         W: torch.Tensor,
+        b: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         
         #i think these are for metrics.
@@ -235,12 +236,12 @@ class reluBackward(BackwardFunc):
         self.sparsity = torch.mean((W == 0).to(torch.float))
 
 
-        preactivations = input @ W
+        preactivations = input @ W + b
 
         if((preactivations > 0).abs().sum() == 0):
             print("None of the preacts are > zero!?!?!?!?!?!?")
-            print(torch.sign(preactivations).sum())
-            print(preactivations.size())
+            # print(torch.sign(preactivations).sum())
+            # print(preactivations.size())
 
             #damn, theyre all negative!
             # wait the last layer is a onehot layer, so the backward_func should be a different function!!
@@ -253,5 +254,6 @@ class reluBackward(BackwardFunc):
         Z_grad = grad * (preactivations > 0).to(grad.dtype) #grad is in Reals, so Z_grad will be in Reals too
         out_grad = Z_grad @ (W.T)                #Z_grad is in Reals, so out_grad will be in Reals too
         W_grad = (input.T) @ Z_grad              #Z_grad is in Reals, and input is in integer, so W_grad will be in Reals too
+        b_grad = Z_grad.sum(dim=0)               #sum over batch dimension  
 
-        return W_grad, out_grad
+        return W_grad, b_grad, out_grad

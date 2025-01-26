@@ -17,6 +17,7 @@ class TernBinLayer(torch.nn.Module):
     backward_actual_func: bnn.functions.BackwardFunc = bnn.functions.backward.ActualGradient()
 
     W: torch.nn.Parameter
+    b: torch.nn.Parameter
 
     def __init__(
         self,
@@ -79,19 +80,23 @@ class TernBinLayer(torch.nn.Module):
         )
 
         #no need to init bias, already initialised to 0
+        # actually: try init to large positive value, e.g. 10
+        self.b.data = torch.full_like(self.b.data, fill_value=512)
 
         # reset grad
         self.W.grad = None
         self.b.grad = None
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.forward_func(x=x, W=self.W, b=self.b)
+        x,z = self.forward_func(x=x, W=self.W, b=self.b)
+        return x,z
 
     def backward(self, grad: torch.Tensor, activation: torch.Tensor) -> torch.Tensor:
         """Backproject gradient signal and update W_grad."""
-        W_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W) 
+        W_grad, b_grad, out_grad = self.backward_func(grad=grad, input=activation, W=self.W, b=self.b) 
         
         self.W.grad = W_grad
+        self.b.grad = b_grad
 
         return out_grad
 

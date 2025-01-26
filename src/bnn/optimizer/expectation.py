@@ -4,7 +4,21 @@ import bnn.type
 
 __all__ = [
     'ExpectationSGD',
+    'Adam'
 ]
+
+class Adam(torch.optim.Adam):
+    def __init__(self, params, **kwargs):
+        bias_params = [param for name, param in params if "b" in name]
+
+        super().__init__(bias_params, **kwargs)
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+
+    def step(self):
+        print(f'bias step (adam)')  #debug
+        super().step()
 
 
 class ExpectationSGD(torch.optim.Optimizer):
@@ -12,10 +26,12 @@ class ExpectationSGD(torch.optim.Optimizer):
         if lr < 0:
             raise ValueError(f'Invalid lr: {lr}')
 
+        W_params = [param for name, param in params if "W" in name]
+
         defaults = dict(lr=lr)
 
-        super().__init__(params, defaults)
-        # print(len(self.param_groups)) #debug
+        super().__init__(W_params, defaults)
+        # print(self.param_groups) #debug
 
     def __setstate__(self, state):
         super().__setstate__(state)
@@ -25,21 +41,24 @@ class ExpectationSGD(torch.optim.Optimizer):
         all_num_flips = []
         all_num_parameters = []
 
+        i = 0                                                # debug
         for group in self.param_groups:
-            lr = group['lr']
             
-            i = 0                                                # debug
+            lr = group['lr']
+
             for param in group['params']:
                 if param.grad is None:
                     continue
-                print(f'optimising layer: {i}')                                    #debug
+                
+
+                print(f'Weight optimisation (layer: {i})')
                 # aggregate number of flips
                 num_flips = _expectation_sgd_ryan(param=param, lr=lr)
                 print(f'number of weight flips: {num_flips.sum()}')                                  #debug
                 num_parameters = torch.numel(param.data)
 
                 all_num_flips.append(num_flips)
-                all_num_parameters.append(num_parameters)
+                all_num_parameters.append(num_parameters)                  
                 i += 1                                              #debug
 
             
@@ -89,11 +108,13 @@ def _expectation_sgd_ryan(
         print("param gradient all zeros")  #this is printing?? only after a few batch updates. so the network is training to output zero...
     else:
         print(f'param gradient not all zeros')
+    
 
-    
-    
-    
+
+    old_param = param.data
     param_grad = param.grad
+
+
 
     grad_sign = torch.sign(param_grad)
     grad_max = torch.max(torch.abs(param_grad))
@@ -103,23 +124,18 @@ def _expectation_sgd_ryan(
         grad_importance = torch.zeros_like(param_grad)
 
     update = grad_sign*torch.bernoulli(grad_importance)
-    
-
                                                                                                 # wait what if we let the weights update out of -1,0,1 and then re-quantise the weights after (not with sign)??
                                                                                                 # this would allow network to increase the magnitude of one weight by decreasing the magnitude of other weights...?
-
-
-    
-    unsaturated = (param.data * update) == 1    #because if param.data = 1 then it will only change if update = 1. also if param.data = -1, then it will only change if update = -1. Note that in both cases, the product is 1. therefore only these weights are unsaturated.
-    num_flipped = torch.sum(unsaturated)    
-
-    
     temp = param.data - update
     temp = torch.round(temp)
     param.data = torch.clamp(temp, max=1, min=-1).to(torch.float)  # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
     
-
-    #note this cannot be fixed without refactoring the code, whilst we have floating point gradients
     #for future: FIXME IM ANNOYED becuase the .to(float) is is a hack to make sure that W.grad is float, even though making W int sohuldnt affect W.grad!!!!! fuckign pytorch.
+    #note this cannot be fixed without refactoring the code, whilst we have floating point gradients
+    
+
+    #metrics
+    unsaturated = (old_param * update) == 1    #because if param.data = 1 then it will only change if update = 1. also if param.data = -1, then it will only change if update = -1. Note that in both cases, the product is 1. therefore only these weights are unsaturated.
+    num_flipped = torch.sum(unsaturated)
 
     return num_flipped
