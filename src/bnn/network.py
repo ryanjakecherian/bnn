@@ -14,6 +14,7 @@ class TernBinNetwork(torch.nn.Module):
 
     input: torch.nn.ParameterDict
     z: torch.nn.ParameterDict
+    threshold: torch.nn.ParameterDict
     grad: torch.nn.ParameterDict
 
     dims: list[int]
@@ -29,6 +30,7 @@ class TernBinNetwork(torch.nn.Module):
         self.layers = torch.nn.ModuleDict()
         self.input = torch.nn.ParameterDict()
         self.z = torch.nn.ParameterDict()
+        self.threshold = {}
         self.grad = torch.nn.ParameterDict()
 
         self.dims = dims
@@ -80,7 +82,8 @@ class TernBinNetwork(torch.nn.Module):
             self.input[layer_name] = torch.zeros(layer.input_dim, layer.output_dim, dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
             self.grad[layer_name] = torch.zeros_like(self.input[layer_name], dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
             self.z[layer_name] = torch.zeros_like(self.input[layer_name], dtype=torch.float) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS
-               
+            self.threshold[layer_name] = 0
+
         return
 
     def _initialise(
@@ -145,8 +148,9 @@ class TernBinNetwork(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer_name, layer in self.layers.items():
             self.input[layer_name] = x     #where x is the input (binarised!) activations which is the output from previous layer
-            x, z = layer(x)    #calls forward of layer (because layer is a nn.module), which in turn calls forward_func of the layer, which matmuls(x,W) and binarises.
+            x, z, threshold = layer(x)    #calls forward of layer (because layer is a nn.module), which in turn calls forward_func of the layer, which matmuls(x,W) and binarises.
             self.z[layer_name] = z
+            self.threshold[layer_name] = threshold
 
         return x
 
@@ -155,7 +159,7 @@ class TernBinNetwork(torch.nn.Module):
         for layer_name, layer in reversed(self.layers.items()):
             layer: bnn.layer.TernBinLayer
 
-            grad = layer.backward(grad, self.input[layer_name])    #calls backward, providing the arguments: grad and the input activations (which were the output of the forward pass)
+            grad = layer.backward(grad, self.input[layer_name], self.threshold[layer_name])    #calls backward, providing the arguments: grad and the input activations (which were the output of the forward pass)
             self.grad[layer_name] = grad
 
         return grad

@@ -1,0 +1,2 @@
+_target_: bnn.optimizer.ModalSGD
+lr: ${train.log_lr_W}

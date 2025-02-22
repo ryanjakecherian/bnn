@@ -1,4 +1,4 @@
-_target_: bnn.optimizer.Adam
+_target_: torch.optim.Adam
 lr: ${pow:10,${train.log_lr_b}}
 betas:
   - 0.9

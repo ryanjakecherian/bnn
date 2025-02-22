@@ -4,34 +4,38 @@ import bnn.type
 
 __all__ = [
     'ExpectationSGD',
-    'Adam'
+    'ModalSGD',
 ]
 
-class Adam(torch.optim.Adam):
-    def __init__(self, params, **kwargs):
-        bias_params = [param for name, param in params if "b" in name]
-
-        super().__init__(bias_params, **kwargs)
-
-    def __setstate__(self, state):
-        super().__setstate__(state)
-
-    def step(self):
-        print(f'bias step (adam)')  #debug
-        super().step()
 
 
 class ExpectationSGD(torch.optim.Optimizer):
-    def __init__(self, params, lr: float):
-        if lr < 0:
-            raise ValueError(f'Invalid lr: {lr}')
+    
+    def __init__(self, params, log_lr: float, log_decrease_rate: float = 0):
+        
+        #error catching
+        if 10**log_lr < 0:
+            raise ValueError(f'Invalid lr: {10**log_lr}')
 
-        W_params = [param for name, param in params if "W" in name]
+        #create lr dict
+        if log_decrease_rate != 0:
+            #log_decrease_rate is just such that the lr = 10^(log_lr - rate*i) where i is reversed layer number  (e.g. layer L would be i=0, and L-1 would have i=1, etc...)
+            lrs = {}
+            for i in range(len(params)):
+                key = 'layers.TernBinLayer' + str(i) + '.W'
+                lrs[key] = 10**(log_lr - ((len(params)-1 - i) * log_decrease_rate ) )   #s.t. the first layer has the lowest lr and the last layer has the highest lr
+        
+        else:
+            lrs = {'layers.TernBinLayer' + str(i) + '.W': 10**log_lr for i in range(len(params))}
 
-        defaults = dict(lr=lr)
+        #create dict of param_groups with their lrs
+        param_groups = [dict(params=[p], lr=lrs[name]) for (name, p) in params.items() if name in lrs]
 
-        super().__init__(W_params, defaults)
-        # print(self.param_groups) #debug
+        #init optimizer with params and their lrs
+        super().__init__(param_groups, defaults={'lr':10**log_lr})
+
+
+
 
     def __setstate__(self, state):
         super().__setstate__(state)
@@ -40,28 +44,32 @@ class ExpectationSGD(torch.optim.Optimizer):
         # for metrics
         all_num_flips = []
         all_num_parameters = []
+        num_layers = len(self.param_groups) - 1
 
-        i = 0                                                # debug
-        for group in self.param_groups:
-            
+        for idx, group in enumerate(self.param_groups):
             lr = group['lr']
 
             for param in group['params']:
                 if param.grad is None:
+                    num_flips = 0
                     continue
+
+                if idx == num_layers:       #last layer updates are unconstrained (floating point last layer)
+                    #adam step...?
+                    param.data = param.data - 10*lr * param.grad #lr should be greater in the floating layer. binary layers need more fine grained updates.
+                    num_flips = torch.numel(param.data)
+
+                else:                           #not last layer updates are expectation
+                    #WHOLE NETWORK IS FLOAT NOW!
+                    param.data = param.data - 10*lr * param.grad #lr should be greater in the floating layer. binary layers need more fine grained updates.
+                    num_flips = torch.numel(param.data)
+                    
+                    # num_flips = _expectation_sgd_ryan(param=param, lr=lr)
                 
 
-                print(f'Weight optimisation (layer: {i})')
-                # aggregate number of flips
-                num_flips = _expectation_sgd_ryan(param=param, lr=lr)
-                print(f'number of weight flips: {num_flips.sum()}')                                  #debug
                 num_parameters = torch.numel(param.data)
-
                 all_num_flips.append(num_flips)
-                all_num_parameters.append(num_parameters)                  
-                i += 1                                              #debug
-
-            
+                all_num_parameters.append(num_parameters)    
 
         # total prop flips
         prop_flipped = sum(all_num_flips) / sum(all_num_parameters)
@@ -103,18 +111,20 @@ def _expectation_sgd_ryan(
     lr: float,
 ) -> int:
     
-    #debug print statements:
+    #debug print statement:
     if param.grad.abs().sum() == 0:
-        print("param gradient all zeros")  #this is printing?? only after a few batch updates. so the network is training to output zero...
-    else:
-        print(f'param gradient not all zeros')
-    
-
+        print("param gradient all zeros") 
 
     old_param = param.data
     param_grad = param.grad
 
 
+    clamp_before_expectation = True
+    
+    if clamp_before_expectation:
+        #think i can simplify expression to grad*param > 0
+        mask = ((param_grad < 0) & (param.data == -1)) | ((param_grad > 0) & (param.data == 1))
+        param_grad[mask] = 0
 
     grad_sign = torch.sign(param_grad)
     grad_max = torch.max(torch.abs(param_grad))
@@ -127,14 +137,18 @@ def _expectation_sgd_ryan(
                                                                                                 # wait what if we let the weights update out of -1,0,1 and then re-quantise the weights after (not with sign)??
                                                                                                 # this would allow network to increase the magnitude of one weight by decreasing the magnitude of other weights...?
     temp = param.data - update
-    temp = torch.round(temp)
-    param.data = torch.clamp(temp, max=1, min=-1).to(torch.float)  # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
+    temp = torch.round(temp)    #why is this line necessary? 
     
-    #for future: FIXME IM ANNOYED becuase the .to(float) is is a hack to make sure that W.grad is float, even though making W int sohuldnt affect W.grad!!!!! fuckign pytorch.
-    #note this cannot be fixed without refactoring the code, whilst we have floating point gradients
+    if clamp_before_expectation == False:
+        param.data = torch.clamp(temp, max=1, min=-1).to(torch.float)  # torch.clamp makes sure you can't nudge outside of {-1, 0, 1}
     
 
-    #metrics
+
+    #for future: FIXME IM ANNOYED becuase the .to(float) is is a hack to make sure that W.grad is float, even though making W int sohuldnt affect W.grad!!!!! fuckign pytorch.
+    #note this cannot be fixed without refactoring the code, whilst we have floating point gradients
+
+
+    #metrics - not accurate if clamping before expectation
     unsaturated = (old_param * update) == 1    #because if param.data = 1 then it will only change if update = 1. also if param.data = -1, then it will only change if update = -1. Note that in both cases, the product is 1. therefore only these weights are unsaturated.
     num_flipped = torch.sum(unsaturated)
 

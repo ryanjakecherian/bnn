@@ -1,2 +1,3 @@
 _target_: bnn.optimizer.ExpectationSGD
-lr: ${pow:10,${train.log_lr_W}}
+log_lr: ${train.log_lr_W}
+log_decrease_rate: -0.5

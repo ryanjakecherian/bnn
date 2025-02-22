@@ -13,6 +13,7 @@ __all__ = [
     'LayerMeanBinarise',
     'LayerMedianBinarise',
     'OneHot',
+    'relu_noBinarise',
 ]
 
 
@@ -26,13 +27,13 @@ class ForwardFunc(abc.ABC):
 class MatMulBinarise(ForwardFunc):
     def __call__(self, x: torch.Tensor, W: torch.Tensor, b:torch.Tensor) -> torch.Tensor:
         # TODO - make this configurable?
-        integer = x @ W + b  #FIXME  I HAVE CHANGED THIS TO FLOAT MATMULS    integer = functions.int_matmul(x, W)
-        out_binary = self.binarise(x=integer)
+        preact = x @ W + b  #FIXME  I HAVE CHANGED THIS TO FLOAT MATMULS    integer = functions.int_matmul(x, W)
+        out_binary, threshold = self.binarise(x=preact)
 
-        return out_binary, integer
+        return out_binary, preact, threshold
 
     @abc.abstractmethod
-    def binarise(self, x: torch.Tensor) -> torch.Tensor: ...
+    def binarise(self, x: torch.Tensor) -> torch.Tensor: int: ...
 
 
 class SignBinarise(MatMulBinarise):
@@ -85,14 +86,20 @@ class reluBinarise(MatMulBinarise):
                 
         out = torch.ones_like(x, dtype=torch.float) #FIXME THIS IS BECAUSE OF THE WHOLE PYTORCH PARAMETER AND GRAD HAVE TO BE SAME TYPE
         out[x < iter_mean] = 0        
-        return out.float()
+        return out.float(), iter_mean.item() #return threshold as float, not tensor
 
+
+class relu_noBinarise(MatMulBinarise):
+    def binarise(self, x: torch.Tensor) -> torch.Tensor:
+        x = torch.nn.functional.relu(x)     # ReLU
+        threshold = float('nan')
+        return x, threshold
 
 
 
 
 class MatMulMax(ForwardFunc):
-    def __call__(self, x: torch.Tensor, W: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    def __call__(self, x: torch.Tensor, W: torch.Tensor, b: torch.Tensor):
         integer = x @ W + b #FIXME I HAVE CHANGED THIS TO FLOAT MATMULS  integer = functions.int_matmul(x, W)
         
         # print(f'pre-activations: {integer}')    #debug

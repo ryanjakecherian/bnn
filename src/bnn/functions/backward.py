@@ -3,6 +3,7 @@ import abc
 import torch
 
 import bnn.type
+import numpy
 
 from . import functions
 
@@ -16,6 +17,7 @@ __all__ = [
     'BackwardBitCountMax',
     'ActualGradient',
     'reluBackward',
+    'Modal',
 ]
 
 EPS = 0.01
@@ -28,6 +30,8 @@ class BackwardFunc(abc.ABC):
         grad: torch.Tensor,
         input: torch.Tensor,
         W: torch.Tensor,
+        b: torch.Tensor,
+        threshold: int
     ) -> tuple[torch.Tensor, torch.Tensor]: ...
 
 
@@ -217,7 +221,7 @@ class ActualGradient(BackprojectTernarise):
 
 
 
-# My new backwards function.
+# my new backwards function.
 class reluBackward(BackwardFunc):
     #i think these are for metrics.
     hidden_dim: int
@@ -229,6 +233,7 @@ class reluBackward(BackwardFunc):
         input: torch.Tensor,
         W: torch.Tensor,
         b: torch.Tensor,
+        threshold: int
     ) -> tuple[torch.Tensor, torch.Tensor]:
         
         #i think these are for metrics.
@@ -240,16 +245,6 @@ class reluBackward(BackwardFunc):
 
         if((preactivations > 0).abs().sum() == 0):
             print("None of the preacts are > zero!?!?!?!?!?!?")
-            # print(torch.sign(preactivations).sum())
-            # print(preactivations.size())
-
-            #damn, theyre all negative!
-            # wait the last layer is a onehot layer, so the backward_func should be a different function!!
-            # if we fixed that, then out_grad would be fine for last layer. 
-            # but then the next layer would go back to relubackward, and we would again need at least some of the preactivations to be > 0.
-            
-            # print(input.abs().sum())
-            # print(W.abs().sum())
 
         Z_grad = grad * (preactivations > 0).to(grad.dtype) #grad is in Reals, so Z_grad will be in Reals too
         out_grad = Z_grad @ (W.T)                #Z_grad is in Reals, so out_grad will be in Reals too
@@ -257,3 +252,68 @@ class reluBackward(BackwardFunc):
         b_grad = Z_grad.sum(dim=0)               #sum over batch dimension  
 
         return W_grad, b_grad, out_grad
+
+
+
+
+class Modal(BackwardFunc): #this does not train.
+    hidden_dim: int
+    sparsity: float
+
+    def __call__(
+        self,
+        grad: torch.Tensor,
+        input: torch.Tensor,
+        W: torch.Tensor,
+        b: torch.Tensor,
+        threshold: int
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        
+        #i think these are for metrics.
+        self.hidden_dim = W.shape[-1]
+        self.sparsity = torch.mean((W == 0).to(torch.float))
+
+        preactivations = input @ W + b
+
+        if((preactivations > 0).abs().sum() == 0):
+            print("None of the preacts are > zero!?!?!?!?!?!?")
+
+        Z_grad = grad * (preactivations > 0).to(grad.dtype) #grad is in Reals, so Z_grad will be in Reals too
+        out_grad = Z_grad @ (W.T)                #Z_grad is in Reals, so out_grad will be in Reals too
+        W_grad = (input.T) @ Z_grad              #Z_grad is in Reals, and input is in integer, so W_grad will be in Reals too
+        b_grad = Z_grad.sum(dim=0)               #sum over batch dimension  
+
+        if numpy.isnan(threshold):
+            W_grad_modal = W_grad
+            
+        else:
+            threshold = round(threshold)
+            turning_points = torch.full_like(grad, threshold-1) #if our binarise threshold is set to 0, then turning point is -1. if binarise threshold is 1, turning point is 0.
+            neg_mask = preactivations < threshold #if the preact is coming from the negative side, then turning point is threshold, else turning point is threshold - 1
+            turning_points[neg_mask] = threshold 
+
+            dx = turning_points - preactivations
+            dx = dx.abs()
+            dx, _ = torch.max(dx, dim=0)    #selecting the max dx: dx is the minimal distance (lower bound) required to change the activation. However dx is different for each datapoint, the correct lower bound is then of course the largest dx.
+
+            W_grad_active = torch.zeros_like(W_grad)
+            W_grad_modal = torch.zeros_like(W_grad)
+            for col_idx in range(W_grad.shape[1]):
+                n = dx[col_idx]  # the number of weights to change for this neuron (each column of W)
+                if n == 0:
+                    print("n is 0")
+
+                quotient, remainder = divmod(n.item(), W_grad.shape[0])
+                
+                if n > W_grad.shape[0]:
+                    #i dont think this should ever be possible - unless there's a bug?
+                    print(f"dx larger than number of rows in W! dx: {n}, W_grad.shape[0]: {W_grad.shape[0]}")
+                    print(quotient)
+                    # W_grad_modal[:,col_idx] = (quotient) * torch.sign(W_grad[:,col_idx]) #not sure this is correct
+                
+                _, indices = torch.topk(W_grad.abs()[:, col_idx], k=int(remainder), largest=True)  # Get top-n indices
+                W_grad_active[indices, col_idx] = 1  # set these indices to 1 in current col_idx of W_grad_active
+
+            W_grad_modal += W_grad_active * torch.sign(W_grad)
+
+        return W_grad_modal, b_grad, out_grad

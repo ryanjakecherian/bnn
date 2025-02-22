@@ -33,7 +33,8 @@ def train_epoch(
     log: bool,
     metrics: dict,
 ) -> dict:
-    assert bnn.network.network_params_al_ternary(TBNN)
+    # no longer asserting everything to be ternary
+    # assert bnn.network.network_params_al_ternary(TBNN)
 
     epoch_loss = 0
     datapoints = 0
@@ -41,7 +42,8 @@ def train_epoch(
     num_correct = 0
 
     for batch_id, batch in enumerate(DL):
-        print(f'batch_id: {batch_id}')                                 #debug
+        if (batch_id % 50) == 0:
+            print(f'batch_id: {batch_id}')
 
         # update number of dps seen...
         batch_datapoints = len(batch.input)
@@ -50,23 +52,12 @@ def train_epoch(
         # forward pass and loss
         output = TBNN.forward(batch.input)
         loss = loss_func.forward(output=output, target=batch.target)
-
-        #debug
-        # torch.set_printoptions(profile="full")             
-        # print(f"Layer L input activations: {TBNN.input['TernBinLayer2']}")
-        # torch.set_printoptions(profile="default")                          
-        # print(f"Layer L weights: {TBNN.layers['TernBinLayer2'].W}")   
-        # print(f"Layer L pre-activations: {TBNN.input['TernBinLayer2'] @ TBNN.layers['TernBinLayer2'].W}")
-        # print(f"Layer L output: {output}")
-        # print(f"Layer L target: {batch.target}")
-
-        # print(f'loss: {loss}') #debug
+        if (batch_id % 50) == 0:
+            print(f'loss: {loss}')
 
         # backward pass
         grad = loss_func.backward(output=output, target=batch.target)
-        # print(f'grad: {grad}')                        #debug
         TBNN.backward(grad)
-        # print(f"Layer L output grad: {TBNN.grad['TernBinLayer2']}") #debug
 
         # optimizer step
         batch_proportion_flipped, all_num_flips, all_num_parmeters = W_optimizer.step()
@@ -174,7 +165,6 @@ def train_epoch(
 
     return epoch_loss
 
-
 def test_epoch(
     TBNN: bnn.network.TernBinNetwork,
     loss_func: bnn.loss.LossFunction,
@@ -251,10 +241,11 @@ def train(
                 metrics={'test/epoch': epoch},
             )
 
-        if checkpoint:
-            # logger.info(f'({run_name}) - epoch {epoch}: checkpointing')
-            fname = save_dir / f'chkpt_epoch_{epoch:06d}.npz'
-            bnn.save.save_network_compressed(network=TBNN, filename=fname)
+        #this errors because the last layer is no longer a ternary layer
+        # if checkpoint:
+        #     # logger.info(f'({run_name}) - epoch {epoch}: checkpointing')
+        #     fname = save_dir / f'chkpt_epoch_{epoch:06d}.npz'
+        #     bnn.save.save_network_compressed(network=TBNN, filename=fname)
 
         # NOTE early exit before recalculating so that it another loop is run and logged before exit!
         if early_exit:
@@ -307,14 +298,18 @@ def main(cfg: omegaconf.DictConfig):
     train_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.train_data_loader)
     test_data_loader: bnn.data.DataLoader = hydra.utils.instantiate(cfg.dataset.test_data_loader)
     loss_func: bnn.loss.LossFunction = hydra.utils.instantiate(cfg.loss)
-    
+
+    W_params = {name:param for (name, param) in network.named_parameters() if 'W' in name}
+    b_params = {name:param for (name, param) in network.named_parameters() if 'b' in name}
+
     W_optim: torch.optim.Optimizer = hydra.utils.instantiate(
         config=cfg.W_optimizer,
-        params=network.named_parameters(),
+        params= W_params,
     )
+
     b_optim:torch.optim.Optimizer = hydra.utils.instantiate(
         config=cfg.b_optimizer,
-        params=network.named_parameters(),
+        params=b_params.values(),   #confused, why is values necessary? i swear optimizers usually take params as dicts??
     )
 
     sched: torch.optim.lr_scheduler.LRScheduler = hydra.utils.instantiate(

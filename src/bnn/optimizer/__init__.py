@@ -6,4 +6,4 @@ __all__ = [
 
 from .deterministic import DeterministicSGD
 from .expectation import ExpectationSGD
-from .expectation import Adam
+from torch.optim import Adam

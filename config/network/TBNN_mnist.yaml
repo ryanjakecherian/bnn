@@ -1,14 +1,14 @@
-hidden_dims: [512, 512]
-#512 x5
+hidden_dims: []
+
 forward_func_default:
   _target_: bnn.functions.forward.reluBinarise
 forward_func_last:
-  _target_: bnn.functions.forward.OneHot
+  _target_: bnn.functions.forward.relu_noBinarise  #outputs logits in N, s.t. softmax is effectively applied in the loss function
 
 backward_func_default:
   _target_: bnn.functions.backward.reluBackward
 backward_func_last:
-  _target_: bnn.functions.backward.OneHotBackward
+  _target_: bnn.functions.backward.reluBackward
 
 
 model:
@@ -18,4 +18,5 @@ model:
     - ${network.forward_func_default}
     - ${network.forward_func_last}
   backward_func:
-    _target_: bnn.functions.backward.reluBackward
+    - ${network.backward_func_default}
+    - ${network.backward_func_last}
