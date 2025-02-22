@@ -13,7 +13,7 @@ __all__ = [
 
 def binarise(x: torch.Tensor, threshold: int = 0) -> torch.Tensor:
     out = torch.ones_like(x)
-    out[x < threshold] = -1
+    out[x < threshold] = 0 #changed from -1 to try new network
 
     return out.to(bnn.type.INTEGER)
 

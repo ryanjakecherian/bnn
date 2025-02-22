@@ -35,7 +35,7 @@ class MatMulBinarise(ForwardFunc):
 
 class SignBinarise(MatMulBinarise):
     def binarise(self, x: torch.Tensor) -> torch.Tensor:
-        return functions.binarise(x=x, threshold=0)
+        return functions.binarise(x=x, threshold=1)
 
 
 class LayerMeanBinarise(MatMulBinarise):

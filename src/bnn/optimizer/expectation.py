@@ -77,6 +77,8 @@ def modal_sgd(
     lr: float,
 ) -> int:
     
+    #the grad is actually made modal in the backward function, because thats where the k for top-k is available.
+
     num_flipped = torch.sum(param.grad.abs())
 
     # torch.sign makes sure you can't nudge outside of {-1, 0, 1}
