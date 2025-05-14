@@ -20,14 +20,15 @@ pre-commit install
 
 Running the Experiments
 --------
-To run the experiment run the following file.
-```
-bnn/src/scripts/train_classification.py
-```
 
 To adjust the network hyperparameters, edit the following files.
 ```
 bnn/config/main.yaml
 bnn/config/network/TBNN_mnist.yaml
 bnn/config/W_optimizer/ExpectationSGD.yaml
+```
+
+To run the experiment run the following file.
+```
+bnn/src/scripts/train_classification.py
 ```
