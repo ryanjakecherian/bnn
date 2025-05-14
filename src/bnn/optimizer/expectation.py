@@ -4,14 +4,13 @@ import bnn.type
 
 __all__ = [
     'ExpectationSGD',
-    'ModalSGD',
 ]
 
 
 
 class ExpectationSGD(torch.optim.Optimizer):
     
-    def __init__(self, params, log_lr: float, log_decrease_rate: float = 0):
+    def __init__(self, params, log_lr: float, log_decrease_rate: float = 0, last_layer_float: bool = False):
         
         #error catching
         if 10**log_lr < 0:
@@ -34,6 +33,9 @@ class ExpectationSGD(torch.optim.Optimizer):
         #init optimizer with params and their lrs
         super().__init__(param_groups, defaults={'lr':10**log_lr})
 
+        #set last layer float
+        self.last_layer_float = last_layer_float
+
 
 
 
@@ -53,18 +55,19 @@ class ExpectationSGD(torch.optim.Optimizer):
                 if param.grad is None:
                     num_flips = 0
                     continue
-
-                if idx == num_layers:       #last layer updates are unconstrained (floating point last layer)
-                    #adam step...?
-                    param.data = param.data - 10*lr * param.grad #lr should be greater in the floating layer. binary layers need more fine grained updates.
+                
+                if self.last_layer_float & (idx == num_layers):       #last layer updates are unconstrained (floating point last layer)
+                    # this is vanilla SGD.
+                    # no implementation of adam yet
+                    param.data = param.data - lr* param.grad       #used set 10*lr because lr should be greater in the floating layer. binary layers need more fine grained updates.
                     num_flips = torch.numel(param.data)
 
-                else:                           #not last layer updates are expectation
-                    #WHOLE NETWORK IS FLOAT NOW!
-                    param.data = param.data - 10*lr * param.grad #lr should be greater in the floating layer. binary layers need more fine grained updates.
-                    num_flips = torch.numel(param.data)
-                    
-                    # num_flips = _expectation_sgd_ryan(param=param, lr=lr)
+                else:                           #not last layer updates are ternary (expectationSGD)
+                    num_flips = _expectation_sgd_ryan(param=param, lr=lr)
+
+                    # if you want whole network to be floats (Not sure why i did this? perhaps for modal updates)
+                    # param.data = param.data - 10*lr * param.grad #lr should be greater in the floating layer. binary layers need more fine grained updates.
+                    # num_flips = torch.numel(param.data)
                 
 
                 num_parameters = torch.numel(param.data)
@@ -119,7 +122,7 @@ def _expectation_sgd_ryan(
     param_grad = param.grad
 
 
-    clamp_before_expectation = True
+    clamp_before_expectation = False
     
     if clamp_before_expectation:
         #think i can simplify expression to grad*param > 0
@@ -148,7 +151,7 @@ def _expectation_sgd_ryan(
     #note this cannot be fixed without refactoring the code, whilst we have floating point gradients
 
 
-    #metrics - not accurate if clamping before expectation
+    #metrics - no longer accurate when clamping before expectation
     unsaturated = (old_param * update) == 1    #because if param.data = 1 then it will only change if update = 1. also if param.data = -1, then it will only change if update = -1. Note that in both cases, the product is 1. therefore only these weights are unsaturated.
     num_flipped = torch.sum(unsaturated)
 

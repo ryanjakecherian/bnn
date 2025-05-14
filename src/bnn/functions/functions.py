@@ -1,5 +1,6 @@
 import torch
 import torch.autograd
+import numpy as np
 
 import bnn.type
 
@@ -8,6 +9,7 @@ __all__ = [
     'ternarise',
     'int_matmul',
     'one_hot_argmax',
+    'image_to_binary_vector',
 ]
 
 
@@ -64,3 +66,46 @@ def one_hot_argmax0(x: torch.Tensor) -> torch.Tensor:
     # add 1s at argmax
     out.scatter_(dim=-1, index=argmax, value=1)
     return out
+
+
+
+def image_to_binary_vector(images):
+    # Ensure the images are a PyTorch tensor of type uint8
+    images = images.to(torch.uint8)
+
+    # Check if the images have the correct shape
+    if images.shape[1:] != (1, 28, 28):
+        raise ValueError("Input images must be of shape (batch_size, 1, 28, 28)")
+
+    batch_size = images.shape[0]
+    binary_vectors = torch.zeros((batch_size, 28 * 28 * 8), dtype=torch.uint8)
+
+    # Convert each pixel in each image to an 8-bit binary representation
+    for b in range(batch_size):
+        for i in range(28):
+            for j in range(28):
+                pixel_value = images[b, 0, i, j]  # Get the pixel value
+                binary_representation = torch.tensor([int(bit) for bit in f"{pixel_value.item():08b}"], dtype=torch.uint8)
+                binary_vectors[b, (i * 28 + j) * 8:(i * 28 + j + 1) * 8] = binary_representation
+
+    return binary_vectors
+    
+    # Ensure the image is a PyTorch tensor and is of the correct type
+    image = (image*255).to(torch.uint8)
+
+    # Check if the image is of the correct shape
+    if image.shape != (28, 28):
+        raise ValueError("Input image must be of shape (28, 28)")
+
+    # Create an empty binary vector of length 28 * 28 * 8
+    binary_vector = torch.zeros((28 * 28 * 8,), dtype=torch.uint8)
+
+    # Convert each pixel to an 8-bit binary representation
+    for i in range(28):
+        for j in range(28):
+            pixel_value = image[i, j]
+            # Convert pixel value to binary and flatten it into the vector
+            binary_representation = torch.tensor(list(f"{pixel_value.item():08b}"), dtype=torch.uint8)
+            binary_vector[(i * 28 + j) * 8:(i * 28 + j + 1) * 8] = binary_representation
+
+    return binary_vector

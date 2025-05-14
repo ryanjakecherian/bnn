@@ -1,7 +1,7 @@
 # Main Hydra configuration file.
 defaults:
   - network: TBNN_mnist
-  - dataset: fashion_mnist01
+  - dataset: mnist
   - W_optimizer: ExpectationSGD
   - b_optimizer: Adam
   - loss: CE
@@ -16,7 +16,7 @@ defaults:
 train:
   epochs: 15
   log_rate: 1
-  log_lr_W: -2
+  log_lr_W: -0.5
   log_lr_b: -3
   batch_size: 128
   gpu: 0
@@ -26,7 +26,7 @@ train:
 
 meta:
   project: 'train_classifier'
-  name: 'MNIST test (2*512, Softmax, integer logits)'
+  name: 'MNIST flattened test'
   seed: 0
 
 hydra:

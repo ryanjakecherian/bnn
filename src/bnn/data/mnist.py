@@ -10,11 +10,11 @@ import bnn.functions
 from .data_loader import DataLoader, LabelledDatum
 
 __all__ = [
-    'MNISTDataLoader',
+    'MNIST01DataLoader',
 ]
 
 
-class MNISTDataLoader(DataLoader):
+class MNIST01DataLoader(DataLoader):
     _loader: torch.utils.data.DataLoader
     _iter: typing.Generator
     _binarise_thresh: float
@@ -55,17 +55,21 @@ class MNISTDataLoader(DataLoader):
         return
 
     def __iter__(self) -> typing.Generator[LabelledDatum, None, None]:
-        self._iter = iter(self._loader)
-        return super().__iter__()
+        self._iter = iter(self._loader) #sets the _iter attribute to the iterator of the DataLoader object (torch.utils.data.DataLoader)
+        return super().__iter__()   #calls the superclass DataLoader's __iter__ method, which if you recall, sets this object's _iteration to 0 and returns self.
 
     def _next(self, size: int) -> LabelledDatum:
-        image, label = next(self._iter)
+        image, label = next(self._iter) #calls the next() method on the iterator of the DataLoader object (which returns the next item in the torch.utils.data.DataLoader object)
+        # image has size (batchsize, 1, 28, 28) and label has size (batchsize)
+
 
         # convert input
         int_image = bnn.functions.binarise(image, threshold=self._binarise_thresh)
-        int_image = int_image.reshape(-1, self.input_size)
+        int_image = int_image.reshape(-1, self.input_size) #reshapes the image tensor from (batchsize, 1, 28, 28) to (batchsize, 28*28)
         # convert label
-        one_hot_label = torch.nn.functional.one_hot(label, num_classes=self.output_size)
-        one_hot_label_rescaled = one_hot_label.to(torch.int) * 2 - 1
+        one_hot_label = torch.nn.functional.one_hot(label, num_classes=self.output_size) #converts the label tensor to a one-hot tensor in {0,1}
+        
+        #if we want {-1,1} network, then uncomment the following line
+        # one_hot_label_rescaled = one_hot_label.to(torch.int) * 2 - 1
 
-        return LabelledDatum(input=int_image, target=one_hot_label_rescaled)
+        return LabelledDatum(input=int_image.float(), target=one_hot_label.float()) #FIXME  TORCH FORCES ME TO MAKE IT A FLOAT OTHERWISE CANT GET FLOAT GRADS

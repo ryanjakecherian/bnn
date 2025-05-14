@@ -33,7 +33,7 @@ def train_epoch(
     log: bool,
     metrics: dict,
 ) -> dict:
-    # no longer asserting everything to be ternary
+    # commented out line below; no longer asserting everything to be ternary
     # assert bnn.network.network_params_al_ternary(TBNN)
 
     epoch_loss = 0
