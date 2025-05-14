@@ -18,7 +18,8 @@ If you're developing:
 pre-commit install
 ```
 
-
+Running the Experiments
+--------
 To run the experiment run the following file.
 ```
 bnn/src/scripts/train_classification.py
